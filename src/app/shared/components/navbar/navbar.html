@@ -1,0 +1,35 @@
+<nav class="relief-navbar">
+  <div class="nav-container">
+    
+    <a class="nav-brand" routerLink="/care-home">
+      <div class="logo-wrapper">
+        <img src="assets/logo.jpg" alt="Relief Logo">
+      </div>
+      <span>Relief</span>
+    </a>
+    
+    <div class="nav-actions">
+   
+      <a routerLink="/care-home" routerLinkActive="active-btn" [routerLinkActiveOptions]="{exact: true}" class="nav-item" title="Home">
+        <i class="fa-solid fa-house"></i>
+      </a>
+
+      <a routerLink="/care-home/history" routerLinkActive="active-btn" class="nav-item" title="History">
+        <i class="fa-solid fa-list-check"></i>
+      </a>
+
+      <a routerLink="/care-home/notifications" routerLinkActive="active-btn" class="nav-item" title="Notifications">
+        <i class="fa-solid fa-user-group"></i>
+      </a>
+
+      <a routerLink="/care-home/profile" routerLinkActive="active-btn" class="nav-item" title="Profile">
+        <i class="fa-solid fa-user"></i>
+      </a>
+
+      <button (click)="onLogout()" class="logout-btn" title="Logout">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+      </button>
+
+    </div>
+  </div>
+</nav>

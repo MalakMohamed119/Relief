@@ -1,0 +1,45 @@
+<app-navbar></app-navbar>
+
+<div class="offers-container">
+  <div class="container">
+    <div class="page-header">
+      <h2>My Offers</h2>
+      <button type="button" class="create-btn" (click)="goToCreateOffer()">
+        <i class="fas fa-plus"></i> Create offer
+      </button>
+    </div>
+
+    @if (loading) {
+      <p class="loading-msg">Loading offers…</p>
+    } @else if (error) {
+      <p class="error-msg">{{ error }}</p>
+    } @else if (!offers.length) {
+      <div class="empty-state">
+        <i class="fas fa-folder-open"></i>
+        <p>No offers yet.</p>
+        <button type="button" class="create-btn" (click)="goToCreateOffer()">
+          <i class="fas fa-plus"></i> Create your first offer
+        </button>
+      </div>
+    } @else {
+      <div class="offers-list">
+        @for (offer of offers; track offer.id) {
+          <div class="offer-card">
+            <h3>{{ offer.title || 'Untitled offer' }}</h3>
+            @if (offer.description) {
+              <p class="description">{{ offer.description }}</p>
+            }
+            @if (offer.address) {
+              <p class="address"><i class="fas fa-map-marker-alt"></i> {{ offer.address }}</p>
+            }
+            @if (offer.hourlyRate != null) {
+              <p class="rate">Hourly rate: {{ offer.hourlyRate }}</p>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>
+
+<app-footer></app-footer>

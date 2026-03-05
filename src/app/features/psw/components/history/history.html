@@ -1,0 +1,46 @@
+<app-psw-nav></app-psw-nav>
+
+<div class="history-container">
+  <div class="container">
+    <h2 class="section-title">Completed Requests History</h2>
+    
+    <div class="request-cards">
+      <!-- Request Card -->
+      <div *ngFor="let item of historyItems" 
+           class="request-card" 
+           [class.completed]="item.status === 'completed'">
+        <div class="card-header">
+          <div class="service-type">{{ item.serviceType }}</div>
+          <div class="status-badge">{{ item.status | titlecase }}</div>
+        </div>
+        <div class="card-body">
+          <div class="info-row">
+            <i class="fas fa-user"></i>
+            <span>{{ item.clientName }}</span>
+          </div>
+          <div class="info-row">
+            <i class="fas fa-phone"></i>
+            <span>{{ item.phone }}</span>
+          </div>
+          <div class="info-row">
+            <i class="far fa-calendar-alt"></i>
+            <span>{{ item.dateTime }}</span>
+          </div>
+          <div class="info-row">
+            <i class="fas fa-check-circle"></i>
+            <span>Completed on {{ item.completedDate }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <a routerLink="/psw" class="back-btn">
+        <i class="fas fa-arrow-left"></i>
+        Back to Home
+      </a>
+    </div>
+  </div>
+</div>
+
+<app-footer></app-footer>

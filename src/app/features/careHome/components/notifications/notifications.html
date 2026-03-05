@@ -1,0 +1,66 @@
+<app-navbar></app-navbar>
+<!-- notifications.component.html -->
+<div class="notifications-container">
+  <div class="container">
+    <h2 class="section-title">Care Requests</h2>
+    
+    <div class="notifications-list">
+      <!-- Notification Item 1 -->
+      <div class="notification-card">
+        <div class="user-info">
+          <img src="/assets/person.png" alt="User" class="user-avatar">
+          <div class="user-details">
+            <h3 class="user-name">Ahmed Mohamed</h3>
+            <p class="request-time">Requested 10 min ago</p>
+            <div class="service-type">Elderly Care</div>
+          </div>
+        </div>
+        <div class="request-details">
+          <p><i class="fas fa-phone"></i> +201234567890</p>
+          <p><i class="far fa-calendar-alt"></i> February 15, 2024 - 10:00 AM</p>
+          <p><i class="fas fa-map-marker-alt"></i> Nasr City, Cairo</p>
+        </div>
+        <div class="action-buttons">
+          <button class="btn accept-btn" (click)="acceptRequest(1)">
+            <i class="fas fa-check"></i> Accept
+          </button>
+          <button class="btn reject-btn" (click)="rejectRequest(1)">
+            <i class="fas fa-times"></i> Reject
+          </button>
+          <button class="btn view-profile-btn" (click)="viewProfile(1)">
+            <i class="fas fa-user"></i> View Profile
+          </button>
+        </div>
+      </div>
+
+      <!-- Notification Item 2 -->
+      <div class="notification-card">
+        <div class="user-info">
+          <img src="/assets/person.png" alt="User" class="user-avatar">
+          <div class="user-details">
+            <h3 class="user-name">Sara Ahmed</h3>
+            <p class="request-time">Requested 25 min ago</p>
+            <div class="service-type">Nursing Care</div>
+          </div>
+        </div>
+        <div class="request-details">
+          <p><i class="fas fa-phone"></i> +201112345678</p>
+          <p><i class="far fa-calendar-alt"></i> February 16, 2024 - 2:00 PM</p>
+          <p><i class="fas fa-map-marker-alt"></i> Maadi, Cairo</p>
+        </div>
+        <div class="action-buttons">
+          <button class="btn accept-btn" (click)="acceptRequest(2)">
+            <i class="fas fa-check"></i> Accept
+          </button>
+          <button class="btn reject-btn" (click)="rejectRequest(2)">
+            <i class="fas fa-times"></i> Reject
+          </button>
+          <button class="btn view-profile-btn" (click)="viewProfile(2)">
+            <i class="fas fa-user"></i> View Profile
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<app-footer></app-footer>

@@ -1,0 +1,51 @@
+<app-psw-nav></app-psw-nav>
+
+<div class="profile-container">
+  <div class="profile-card">
+    <div class="profile-content">
+      <!-- Profile Picture -->
+      <div class="profile-picture">
+        <img [src]="profile.profileImage" [alt]="profile.name" class="profile-img">
+        <div class="initials" *ngIf="!profile.profileImage">
+          {{ getInitials(profile.name) }}
+        </div>
+      </div>
+
+      <!-- Profile Info -->
+      <div class="profile-info">
+        <h1 class="profile-name">{{ profile.name }}</h1>
+        <p class="profile-position">{{ profile.position }}</p>
+        
+        <div class="info-section">
+          <div class="info-item">
+            <i class="fas fa-envelope"></i>
+            <span>{{ profile.email }}</span>
+          </div>
+          
+          <div class="info-item">
+            <i class="fas fa-phone"></i>
+            <span>{{ profile.phone }}</span>
+          </div>
+          
+          <div class="info-item">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>{{ profile.location }}</span>
+          </div>
+          
+          <div class="info-item">
+            <i class="far fa-calendar-alt"></i>
+            <span>Member since: {{ profile.joinDate }}</span>
+          </div>
+        </div>
+
+        <!-- Edit Button -->
+        <button class="edit-button">
+          <i class="fas fa-edit"></i>
+          Edit Profile
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<app-footer></app-footer>
