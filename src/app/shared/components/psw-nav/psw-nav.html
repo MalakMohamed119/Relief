@@ -9,29 +9,29 @@
     </a>
 
     <div class="nav-actions">
-      <a routerLink="/psw" routerLinkActive="active-btn" [routerLinkActiveOptions]="{ exact: true }" class="nav-item" title="Home">
-        <i class="fa-solid fa-house"></i>
+      <a routerLink="/psw/offers" routerLinkActive="active-btn" class="nav-item" title="Offers">
+        <i class="fa-solid fa-briefcase"></i>
+        <span class="nav-label">Offers</span>
       </a>
-      
-      
       <a routerLink="/psw/history" routerLinkActive="active-btn" class="nav-item" title="History">
-        <i class="fa-solid fa-list-check"></i>
+        <i class="fa-solid fa-list"></i>
+        <span class="nav-label">History</span>
       </a>
-
       <a routerLink="/psw/notifications" routerLinkActive="active-btn" class="nav-item" title="Notifications">
         <div class="notification-box">
           <i class="fa-solid fa-bell"></i>
           <span class="badge"></span>
         </div>
+        <span class="nav-label">Notifications</span>
       </a>
       <a routerLink="/psw/profile" routerLinkActive="active-btn" class="nav-item" title="Profile">
         <i class="fa-solid fa-user-gear"></i>
+        <span class="nav-label">Profile</span>
       </a>
-
       <div class="divider"></div>
-
       <button (click)="onLogout()" class="logout-btn" title="Logout">
         <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        <span class="nav-label">Logout</span>
       </button>
     </div>
   </div>

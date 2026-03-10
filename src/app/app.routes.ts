@@ -3,7 +3,6 @@ import { LoginComponent } from './core/auth/login/login';
 import { RegisterComponent } from './core/auth/register/register';
 import { NotFound } from './features/not-found/not-found';
 import { roleGuard } from './core/guards/auth-guards-guard';
-import { PswHome } from './features/psw/components/psw-home/psw-home';
 export const routes: Routes = [
   { path: '', redirectTo: '/care-home', pathMatch: 'full' },
   
@@ -46,7 +45,12 @@ export const routes: Routes = [
   
       {
         path: '',
-        loadComponent: () => import('./features/psw/components/psw-home/psw-home').then(m => m.PswHome)
+        redirectTo: 'offers',
+        pathMatch: 'full'
+      },
+      {
+        path: 'offers',
+        loadComponent: () => import('./features/psw/components/offers/offers').then(m => m.PswOffers)
       },
       {
         path: 'notifications',
@@ -55,6 +59,10 @@ export const routes: Routes = [
       {
         path: 'profile',
         loadComponent: () => import('./features/psw/components/psw-profile/psw-profile').then(m => m.PswProfile)
+      },
+      {
+        path: 'complete-profile',
+        loadComponent: () => import('./features/psw/complete-profile/complete-profile').then(m => m.PswCompleteProfile)
       },
       {
         path: 'history',

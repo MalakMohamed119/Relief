@@ -1,0 +1,83 @@
+.complete-profile-container{
+	padding:40px 16px;
+	display:flex;
+	align-items:center;
+	justify-content:center;
+}
+.complete-profile-container .card{
+	width:100%;
+	max-width:720px;
+	background:#fff;
+	padding:20px;
+	border-radius:12px;
+	box-shadow:0 6px 20px rgba(2,6,23,0.06);
+}
+.complete-profile-container h2{margin:0 0 8px}
+.complete-profile-container .muted{color:#6b7280;margin:0 0 16px}
+.complete-profile-container label{display:block;margin-top:10px;margin-bottom:6px;color:#374151;font-weight:600}
+.complete-profile-container input[type=file],.complete-profile-container select{width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef2;background:#fbfdfe}
+.complete-profile-container .actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+.btn-primary{background:linear-gradient(90deg,#0b96b1,#0b71a5);color:#fff;padding:10px 16px;border-radius:8px;border:none}
+.btn-ghost{background:transparent;border:1px solid #e6eef2;color:#374151;padding:8px 12px;border-radius:8px}
+
+/* Styled file row */
+.file-row{
+	display:flex;
+	align-items:center;
+	gap:12px;
+	margin-bottom:8px;
+}
+
+.file-btn{
+	background:linear-gradient(90deg,#0b96b1,#0b71a5);
+	color:#fff;
+	padding:8px 12px;
+	border-radius:8px;
+	border:none;
+	font-weight:600;
+	cursor:pointer;
+}
+
+.file-info{
+	flex:1;
+	padding:10px 12px;
+	border-radius:8px;
+	background:#fbfdfe;
+	border:1px solid #e6eef2;
+	color:#374151;
+	font-size:0.95rem;
+	white-space:nowrap;
+	overflow:hidden;
+	text-overflow:ellipsis;
+}
+
+/* Match the register gender dropdown styles */
+.complete-profile-container .custom-select{
+	cursor: pointer;
+	appearance: none;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: right 1rem center;
+	background-size: 1em;
+	padding: 10px 40px 10px 10px;
+
+	&:focus {
+		border-color: #0b96b1;
+		outline: none;
+		box-shadow: 0 0 0 4px rgba(11,150,177,0.1);
+	}
+}
+
+/* Keep default selects styled but avoid overriding .custom-select used elsewhere */
+.complete-profile-container select:not(.custom-select){
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+	background-image: linear-gradient(45deg, transparent 50%, #0b71a5 50%), linear-gradient(135deg, #0b71a5 50%, transparent 50%);
+	background-position: calc(100% - 20px) calc(1em + 2px), calc(100% - 15px) calc(1em + 2px);
+	background-size: 6px 6px, 6px 6px;
+	background-repeat: no-repeat;
+	padding-right: 40px;
+}

@@ -1,0 +1,139 @@
+<app-psw-nav></app-psw-nav>
+
+<div class="psw-offers-page">
+  <main class="container">
+    <header class="header">
+      <h1>Browse Offers</h1>
+      <p>Find available care home offers and apply.</p>
+      <div class="header-actions">
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input
+            type="text"
+            placeholder="Search offers by title or address"
+            [value]="search"
+            (input)="onSearchChange($any($event.target).value)" />
+        </div>
+        <a routerLink="/psw/history" class="btn btn-secondary">
+          <i class="fas fa-clock"></i>
+          My offer history
+        </a>
+      </div>
+    </header>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading offers...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="!isLoading && error" class="error-state">
+      <i class="fas fa-exclamation-circle"></i>
+      <p>{{ error }}</p>
+      <button class="btn btn-primary" (click)="loadOffers()">Retry</button>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!isLoading && !error && offers.length === 0" class="empty-state">
+      <i class="fas fa-folder-open"></i>
+      <h3>No offers found</h3>
+      <p>Try adjusting your search or check again later.</p>
+    </div>
+
+    <!-- Offers Grid -->
+    <div class="offers-grid" *ngIf="!isLoading && !error && offers.length > 0">
+      <article
+        class="offer-card"
+        *ngFor="let offer of offers">
+        <div class="card-header">
+          <h2>{{ offer.title || 'Untitled offer' }}</h2>
+          <p class="address" *ngIf="offer.address">
+            <i class="fas fa-map-marker-alt"></i>
+            {{ offer.address }}
+          </p>
+        </div>
+        <div class="card-body">
+          <p class="description" *ngIf="offer.description">
+            {{ offer.description }}
+          </p>
+          <div class="meta">
+            <div class="meta-item" *ngIf="offer.hourlyRate != null">
+              <i class="fas fa-pound-sign"></i>
+              <span>£{{ offer.hourlyRate | number:'1.2-2' }}/hour</span>
+            </div>
+            <div class="meta-item" *ngIf="offer.shifts?.length">
+              <i class="far fa-calendar-alt"></i>
+              <span>
+                {{ offer.shifts[0].date || offer.shifts[0].Date | date:'MMM d, y' }}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button
+            class="btn btn-outline"
+            type="button"
+            (click)="openDetails(offer)">
+            <i class="fas fa-eye"></i>
+            View details
+          </button>
+          <button
+            class="btn btn-primary"
+            type="button"
+            [disabled]="applyingOfferId === offer.id"
+            (click)="apply(offer)">
+            <i class="fas" [ngClass]="applyingOfferId === offer.id ? 'fa-spinner fa-spin' : 'fa-paper-plane'"></i>
+            {{ applyingOfferId === offer.id ? 'Applying...' : 'Apply' }}
+          </button>
+        </div>
+      </article>
+    </div>
+  </main>
+
+  <!-- Details Modal -->
+  <div *ngIf="selectedOffer" class="modal-overlay" (click)="closeDetails()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <h2>{{ selectedOffer.title || 'Offer details' }}</h2>
+        <button type="button" class="close-btn" (click)="closeDetails()">
+          <i class="fas fa-times"></i>
+        </button>
+      </header>
+      <section class="modal-body">
+        <p *ngIf="selectedOffer.description">{{ selectedOffer.description }}</p>
+        <div class="detail-row" *ngIf="selectedOffer.address">
+          <span class="label">Address</span>
+          <span class="value">{{ selectedOffer.address }}</span>
+        </div>
+        <div class="detail-row" *ngIf="selectedOffer.hourlyRate != null">
+          <span class="label">Hourly rate</span>
+          <span class="value">£{{ selectedOffer.hourlyRate | number:'1.2-2' }}/hour</span>
+        </div>
+        <div class="detail-row" *ngIf="selectedOffer.shifts?.length">
+          <span class="label">Shifts</span>
+          <ul class="shifts-list">
+            <li *ngFor="let s of selectedOffer.shifts">
+              <i class="far fa-calendar-alt"></i>
+              <span>
+                {{ s.date || s.Date | date:'MMM d, y' }}
+                <ng-container *ngIf="s.startTime || s.start || s.Start">
+                  •
+                  {{ (s.startTime || s.start || s.Start) | slice:0:5 }}
+                  -
+                  {{ (s.endTime || s.end || s.End) | slice:0:5 }}
+                </ng-container>
+              </span>
+            </li>
+          </ul>
+        </div>
+      </section>
+      <footer class="modal-footer">
+        <button class="btn btn-secondary" type="button" (click)="closeDetails()">Close</button>
+      </footer>
+    </div>
+  </div>
+
+  <app-footer></app-footer>
+</div>
+

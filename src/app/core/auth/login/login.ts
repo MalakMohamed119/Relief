@@ -40,13 +40,18 @@ export class LoginComponent implements OnInit {
   }
 
   onLogin() {
-    if (this.loginForm.invalid) return;
+    if (this.loginForm.invalid) {
+      // mark controls as touched so per-field errors and invalid styles show
+      this.loginForm.markAllAsTouched();
+      return;
+    }
     this.isLoading = true;
 
     this.authService.login(this.loginForm.value).subscribe({
       next: (res) => {
-        const role = res.role; // CareHome or Caregiver
-        if (role === 'CareHome') {
+        const role = res.role; // CareHome, Individual, or Caregiver
+        // For CareHome or Individual roles, go to care-home
+        if (role === 'CareHome' || role === 'Individual') {
           this.router.navigate(['/care-home']);
         } else {
           this.router.navigate(['/psw']);

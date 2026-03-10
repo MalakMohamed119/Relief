@@ -6,6 +6,7 @@ import { Footer } from "../../../../shared/components/footer/footer";
 import { Navbar } from "../../../../shared/components/navbar/navbar";
 import { OffersService } from '../../../../core/services/offers.service';
 import { CreateJobOfferDto } from '../../../../core/models/api.models';
+import { NotificationService } from '../../../../core/services/notification.service';
 import { first } from 'rxjs/operators';
 import * as L from 'leaflet';
 
@@ -72,13 +73,15 @@ export class CareHomeHome implements AfterViewInit {
   marker: L.Marker | null = null;
   mapReady = false;
   addressOrLocationError = false;
+  editingOfferId: string | null = null;
 
   constructor(
     private fb: FormBuilder,
     private offersService: OffersService,
     private cdr: ChangeDetectorRef,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private notifications: NotificationService
   ) {
     this.requestForm = this.fb.group({
       title: ['', [Validators.required]],
@@ -96,6 +99,14 @@ export class CareHomeHome implements AfterViewInit {
     this.route.fragment.subscribe((f) => {
       if (f === 'request-form') {
         setTimeout(() => this.scrollToRequestForm(), 100);
+      }
+    });
+    this.route.queryParamMap.subscribe((params) => {
+      const offerId = params.get('offerId');
+      if (offerId) {
+        this.loadOfferForEdit(offerId);
+      } else {
+        this.editingOfferId = null;
       }
     });
   }
@@ -140,6 +151,56 @@ export class CareHomeHome implements AfterViewInit {
         this.cdr.markForCheck();
       })
       .catch(() => this.cdr.markForCheck());
+  }
+
+  private loadOfferForEdit(offerId: string): void {
+    this.offersService.getOfferById(offerId).pipe(first()).subscribe({
+      next: (offer) => {
+        if (!offer) return;
+        this.editingOfferId = offerId;
+        this.requestForm.patchValue({
+          title: offer.title ?? offer.Title ?? '',
+          description: offer.description ?? offer.Description ?? '',
+          address: offer.address ?? offer.Address ?? '',
+          latitude: offer.latitude ?? offer.Latitude ?? 0,
+          longitude: offer.longitude ?? offer.Longitude ?? 0,
+          hourlyRate: offer.hourlyRate ?? offer.HourlyRate ?? 0,
+        });
+
+        const shifts = offer.shifts ?? offer.Shifts ?? [];
+        if (Array.isArray(shifts) && shifts.length) {
+          this.shifts.clear();
+          for (const s of shifts) {
+            const date = s.date ?? s.Date ?? '';
+            const startTime = (s.startTime ?? s.StartTime ?? '').toString().slice(0, 5);
+            const endTime = (s.endTime ?? s.EndTime ?? '').toString().slice(0, 5);
+            this.shifts.push(this.fb.group({
+              date,
+              startTime: startTime || '08:00',
+              endTime: endTime || '16:00',
+            }));
+          }
+        }
+
+        const lat = this.requestForm.get('latitude')?.value;
+        const lng = this.requestForm.get('longitude')?.value;
+        if (this.map && lat && lng && !Number.isNaN(lat) && !Number.isNaN(lng)) {
+          const latlng = L.latLng(lat, lng);
+          if (this.marker) {
+            this.marker.setLatLng(latlng);
+          } else {
+            this.marker = L.marker(latlng).addTo(this.map);
+          }
+          this.map.setView(latlng, 13);
+        }
+
+        this.addressOrLocationError = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.notifications.show('Failed to load offer for editing.', 'error', 4000);
+      }
+    });
   }
 
   private createShiftGroup(): FormGroup {
@@ -202,9 +263,15 @@ export class CareHomeHome implements AfterViewInit {
       }))
     };
     this.isSubmitting = true;
-    this.offersService.createOffer(payload).pipe(first()).subscribe({
+    const request$ = this.editingOfferId
+      ? this.offersService.updateOffer(this.editingOfferId, payload)
+      : this.offersService.createOffer(payload);
+
+    request$.pipe(first()).subscribe({
       next: () => {
-        alert('Request created successfully.');
+        const msg = this.editingOfferId ? 'Offer updated successfully.' : 'Request created successfully.';
+        this.notifications.show(msg, 'success');
+        this.editingOfferId = null;
         this.requestForm.patchValue({
           title: '',
           description: '',
@@ -229,13 +296,13 @@ export class CareHomeHome implements AfterViewInit {
         this.cdr.markForCheck();
         const status = err?.status;
         if (status === 401) {
-          alert('Please log in to create an offer.');
+          this.notifications.show('Please log in to create an offer.', 'error', 4000);
           this.router.navigate(['/login']);
         } else if (status === 0) {
-          alert('Cannot reach the server. Check CORS and network, or try again later.');
+          this.notifications.show('Cannot reach the server. Check CORS and network, or try again later.', 'error', 5000);
         } else {
           const msg = err?.error?.message || err?.message || 'Request failed. Try again.';
-          alert(msg);
+          this.notifications.show(msg, 'error', 5000);
         }
       }
     });

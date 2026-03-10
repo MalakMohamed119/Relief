@@ -21,38 +21,100 @@
               <i class="fas fa-plus"></i> Create your first offer
             </button>
           </div>
-        } @else {
+          } @else {
           <div class="cards-grid">
             @for (offer of offers; track $index) {
-              <div class="content-card">
+              <div class="content-card" (click)="onViewOffer(offer)">
                 <div class="card-header">
                   <div class="card-title">{{ offer.title || 'Untitled offer' }}</div>
                   <span class="status-badge status-active">Active</span>
                 </div>
-              <div class="card-body">
-                @if (offer.description) {
-                  <div class="info-row">
-                    <i class="fas fa-align-left"></i>
-                    <span>{{ offer.description }}</span>
+                <div class="card-body">
+                  @if (offer.description) {
+                    <div class="info-row">
+                      <i class="fas fa-align-left"></i>
+                      <span>{{ offer.description }}</span>
+                    </div>
+                  }
+                  @if (offer.address) {
+                    <div class="info-row">
+                      <i class="fas fa-map-marker-alt"></i>
+                      <span>{{ offer.address }}</span>
+                    </div>
+                  }
+                  @if (offer.hourlyRate != null && offer.hourlyRate !== '') {
+                    <div class="info-row">
+                      <i class="fas fa-pound-sign"></i>
+                      <span>Hourly rate: {{ offer.hourlyRate }}</span>
+                    </div>
+                  }
+                  <div class="card-actions">
+                    <button
+                      type="button"
+                      class="btn btn-outline"
+                      (click)="onViewOffer(offer); $event.stopPropagation()">
+                      <i class="fas fa-eye"></i>
+                      View
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-ghost"
+                      (click)="onEditOffer(offer); $event.stopPropagation()">
+                      <i class="fas fa-edit"></i>
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-danger"
+                      (click)="onDeleteOffer(offer); $event.stopPropagation()">
+                      <i class="fas fa-trash-alt"></i>
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+        
+        <!-- Modal popup for viewing an offer -->
+        @if (selectedOffer) {
+          <div class="modal-overlay" (click)="closeModal()">
+            <div class="modal-card" (click)="$event.stopPropagation()">
+              <div class="modal-header">
+                <h3>{{ selectedOffer.title || 'Offer details' }}</h3>
+                <button type="button" class="modal-close" (click)="closeModal()">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              <div class="modal-body">
+                @if (selectedOffer.description) {
+                  <div class="details-row">
+                    <span class="label">Description:</span>
+                    <span class="value">{{ selectedOffer.description }}</span>
                   </div>
                 }
-                @if (offer.address) {
-                  <div class="info-row">
-                    <i class="fas fa-map-marker-alt"></i>
-                    <span>{{ offer.address }}</span>
+                @if (selectedOffer.address) {
+                  <div class="details-row">
+                    <span class="label">Address:</span>
+                    <span class="value">{{ selectedOffer.address }}</span>
                   </div>
                 }
-                @if (offer.hourlyRate != null && offer.hourlyRate !== '') {
-                  <div class="info-row">
-                    <i class="fas fa-pound-sign"></i>
-                    <span>Hourly rate: {{ offer.hourlyRate }}</span>
+                @if (selectedOffer.hourlyRate != null && selectedOffer.hourlyRate !== '') {
+                  <div class="details-row">
+                    <span class="label">Hourly rate:</span>
+                    <span class="value">{{ selectedOffer.hourlyRate }}</span>
                   </div>
                 }
               </div>
+              <div class="modal-footer">
+                <button class="btn btn-outline" (click)="closeModal()">Close</button>
+                <button class="btn btn-ghost" (click)="onEditOffer(selectedOffer); $event.stopPropagation()">Edit</button>
+                <button class="btn btn-danger" (click)="onDeleteOffer(selectedOffer); $event.stopPropagation()">Delete</button>
+              </div>
             </div>
-          }
-        </div>
-      }
+          </div>
+        }
       </div>
     </section>
 

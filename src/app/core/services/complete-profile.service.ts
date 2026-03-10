@@ -37,7 +37,8 @@ export class CompleteProfileService {
       formData.append('FirstAidOrCPRFile', payload.firstAidOrCPRFile);
     }
 
-    return this.http.post<any>(`${this.apiUrl}/api/CompleteProfile/complete-profile`, formData);
+    // OpenAPI: POST /api/psw/profile (multipart/form-data)
+    return this.http.post<any>(`${this.apiUrl}/api/psw/profile`, formData);
   }
 }
 

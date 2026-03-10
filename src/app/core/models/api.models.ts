@@ -84,3 +84,11 @@ export interface CancelApplicationDto {
   jobRequestItemId: string;
 }
 
+export interface UpdateProfileDto {
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  address: AddressDTO;
+}
+
+

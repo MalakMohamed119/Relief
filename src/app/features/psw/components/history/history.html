@@ -2,34 +2,59 @@
 
 <div class="history-container">
   <div class="container">
-    <h2 class="section-title">Completed Requests History</h2>
-    
-    <div class="request-cards">
-      <!-- Request Card -->
-      <div *ngFor="let item of historyItems" 
-           class="request-card" 
-           [class.completed]="item.status === 'completed'">
+    <h2 class="section-title">Offers (Accepted &amp; Cancelled)</h2>
+    <p class="section-subtitle">Your decided applications – accepted or cancelled offers</p>
+
+    <!-- Loading -->
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading offers...</p>
+    </div>
+
+    <!-- Empty -->
+    <div *ngIf="!isLoading && applications.length === 0" class="empty-state">
+      <i class="fas fa-folder-open"></i>
+      <h3>No offers yet</h3>
+      <p>You don't have any accepted or cancelled offers. Pending applications appear on the Home page.</p>
+    </div>
+
+    <!-- Cards -->
+    <div class="applications-grid" *ngIf="!isLoading && applications.length > 0">
+      <div *ngFor="let app of applications"
+           class="request-card"
+           [class.selected]="selectedApp?.app?.jobRequestItemId === app.app?.jobRequestItemId"
+           [class]="'status-' + app.statusLabel">
         <div class="card-header">
-          <div class="service-type">{{ item.serviceType }}</div>
-          <div class="status-badge">{{ item.status | titlecase }}</div>
+          <div class="card-title">
+            <h3>{{ app.app.offerTitle || 'Untitled offer' }}</h3>
+            <p class="care-home">{{ app.app.careHomeName || 'N/A' }}</p>
+          </div>
+          <span class="status-badge" [class]="'status-' + app.statusLabel">{{ app.statusDisplay }}</span>
         </div>
         <div class="card-body">
           <div class="info-row">
-            <i class="fas fa-user"></i>
-            <span>{{ item.clientName }}</span>
-          </div>
-          <div class="info-row">
-            <i class="fas fa-phone"></i>
-            <span>{{ item.phone }}</span>
+            <i class="fas fa-map-marker-alt"></i>
+            <span>{{ app.app.address || 'N/A' }}</span>
           </div>
           <div class="info-row">
             <i class="far fa-calendar-alt"></i>
-            <span>{{ item.dateTime }}</span>
+            <span>{{ app.app.shiftDate ? (app.app.shiftDate | date:'MMM d, y') : 'N/A' }}</span>
           </div>
           <div class="info-row">
-            <i class="fas fa-check-circle"></i>
-            <span>Completed on {{ item.completedDate }}</span>
+            <i class="fas fa-clock"></i>
+            <span>{{ (app.app.startTime || app.app.endTime) ? ((app.app.startTime || '') + ' - ' + (app.app.endTime || '')) : 'N/A' }}</span>
           </div>
+          @if (app.app.hourlyRate != null) {
+            <div class="info-row">
+              <i class="fas fa-pound-sign"></i>
+              <span>£{{ app.app.hourlyRate | number:'1.2-2' }}/hour</span>
+            </div>
+          }
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-outline" (click)="viewRequest(app)">
+            <i class="fas fa-eye"></i> View
+          </button>
         </div>
       </div>
     </div>
@@ -39,6 +64,49 @@
         <i class="fas fa-arrow-left"></i>
         Back to Home
       </a>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div *ngIf="selectedApp" class="modal-overlay" (click)="closeDetails()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="request-details">
+      <div class="request-header">
+        <h2>{{ selectedApp.app.offerTitle }}</h2>
+        <span class="request-status" [class]="'status-' + selectedApp.statusLabel">{{ selectedApp.statusDisplay }}</span>
+      </div>
+      <div class="detail-section">
+        <h3>Care Home</h3>
+        <p>{{ selectedApp.app.careHomeName || 'N/A' }}</p>
+      </div>
+      <div class="detail-section">
+        <h3>Address</h3>
+        <p>{{ selectedApp.app.address || 'N/A' }}</p>
+      </div>
+      <div class="detail-grid">
+        @if (selectedApp.app.hourlyRate != null) {
+          <div class="detail-item">
+            <h4>Hourly Rate</h4>
+            <p>£{{ selectedApp.app.hourlyRate | number:'1.2-2' }}/hour</p>
+          </div>
+        }
+        @if (selectedApp.app.shiftDate) {
+          <div class="detail-item">
+            <h4>Shift Date</h4>
+            <p>{{ selectedApp.app.shiftDate | date:'fullDate' }}</p>
+          </div>
+        }
+        @if (selectedApp.app.startTime || selectedApp.app.endTime) {
+          <div class="detail-item">
+            <h4>Time</h4>
+            <p>{{ selectedApp.app.startTime }} - {{ selectedApp.app.endTime }}</p>
+          </div>
+        }
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" (click)="closeDetails()">Close</button>
+      </div>
     </div>
   </div>
 </div>

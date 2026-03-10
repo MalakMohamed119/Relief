@@ -65,6 +65,8 @@ export class RegisterComponent {
         {
           firstName: ['', [Validators.required, Validators.minLength(2)]],
           lastName: ['', [Validators.required, Validators.minLength(2)]],
+          businessLicense: [''],
+          legalName: [''],
           phone: ['', [Validators.required]],
           gender: ['', Validators.required],
           apartment: ['', Validators.required],
@@ -73,8 +75,6 @@ export class RegisterComponent {
           state: ['', Validators.required],
           postalCode: ['', Validators.required],
           country: ['', Validators.required],
-          customerFirstName: ['', [Validators.required, Validators.minLength(2)]],
-          customerLastName: ['', [Validators.required, Validators.minLength(2)]],
           accountEmail: ['', [Validators.required, Validators.email]],
           password: ['', passwordValidators],
           confirmPassword: ['', Validators.required]
@@ -139,7 +139,12 @@ export class RegisterComponent {
   }
 
   onSubmit() {
-    if (!this.currentMode || this.registerForm.invalid) return;
+    if (!this.currentMode) return;
+    if (this.registerForm.invalid) {
+      // mark all controls as touched so validation messages appear under fields
+      this.registerForm.markAllAsTouched();
+      return;
+    }
     this.isLoading = true;
 
     const data = this.registerForm.value;
@@ -171,20 +176,24 @@ export class RegisterComponent {
       payload = {
         firstName: data.firstName,
         lastName: data.lastName,
-        phone: data.phone,
+        businessLicense: data.businessLicense || '',
+        legalName: data.legalName || `${data.firstName} ${data.lastName}`,
+        email: data.accountEmail,
+        password: data.password,
+        phoneNumber: data.phone,
+        dateOfBirth: new Date().toISOString(), // Required but not collected in form
         gender: data.gender,
-        apartment: data.apartment,
-        street: data.street,
-        city: data.city,
-        state: data.state,
-        postalCode: data.postalCode,
-        country: data.country,
-        customerFirstName: data.customerFirstName,
-        customerLastName: data.customerLastName,
-        accountEmail: data.accountEmail,
-        password: data.password
+        address: {
+          apartmentNumber: Number(data.apartment) || 0,
+          street: data.street,
+          city: data.city,
+          state: data.state,
+          postalCode: data.postalCode,
+          country: data.country
+        }
       };
-      typePath = 'carehome/individual';
+      // Care home individual endpoint
+      typePath = 'individual';
     } else {
       payload = {
         businessLicenseNumber: data.businessLicenseNumber,
@@ -216,12 +225,26 @@ export class RegisterComponent {
       .subscribe({
         next: () => {
           alert('Registration Successful!');
-          this.router.navigate(['/login']);
+          // If registering as PSW (locum), send user to complete profile first
+          if (typePath === 'psw') {
+            this.router.navigate(['/psw/complete-profile']);
+          } else {
+            // For Care Home (individual/multiple), go to login
+            this.router.navigate(['/login']);
+          }
         },
         error: err => {
           console.error('Registration failed', err);
           console.error('Backend error body:', err?.error);
           this.isLoading = false;
+          
+          // Show user-friendly error message
+          const errorMessage = err?.error?.message || 'Registration failed. Please try again.';
+          if (err?.status === 409) {
+            alert('This email is already registered. Please use a different email or login.');
+          } else {
+            alert(errorMessage);
+          }
         }
       });
   }

@@ -5,16 +5,23 @@
     <div class="profile-content">
       <!-- Profile Picture -->
       <div class="profile-picture">
-        <img [src]="profile.profileImage" [alt]="profile.name" class="profile-img">
-        <div class="initials" *ngIf="!profile.profileImage">
-          {{ getInitials(profile.name) }}
+        <img *ngIf="profile.profileImage; else initialsTpl" [src]="profile.profileImage" [alt]="profile.name" class="profile-img">
+        <ng-template #initialsTpl>
+          <div class="initials">
+            {{ getInitials(profile.name || 'P S') }}
+          </div>
+        </ng-template>
+        <div class="change-photo">
+          <input type="file" #photoInput hidden (change)="onPhotoSelected($event)">
+          <button type="button" (click)="photoInput.click()">
+            <i class="fas fa-camera"></i> Change photo
+          </button>
         </div>
       </div>
 
       <!-- Profile Info -->
       <div class="profile-info">
-        <h1 class="profile-name">{{ profile.name }}</h1>
-        <p class="profile-position">{{ profile.position }}</p>
+        <h1 class="profile-name">{{ profile.name || 'Profile' }}</h1>
         
         <div class="info-section">
           <div class="info-item">
@@ -29,12 +36,12 @@
           
           <div class="info-item">
             <i class="fas fa-map-marker-alt"></i>
-            <span>{{ profile.location }}</span>
+            <span>{{ profile.location || 'N/A' }}</span>
           </div>
           
           <div class="info-item">
             <i class="far fa-calendar-alt"></i>
-            <span>Member since: {{ profile.joinDate }}</span>
+            <span>Member since: {{ profile.joinDate || 'N/A' }}</span>
           </div>
         </div>
 

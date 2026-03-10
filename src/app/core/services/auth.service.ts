@@ -31,6 +31,9 @@ export class AuthService {
             if (res.role) {
               localStorage.setItem('userRole', res.role);
             }
+            if (res.userId) {
+              localStorage.setItem('userId', res.userId);
+            }
             this.tokenSubject.next(res.token);
           }
         })
@@ -41,6 +44,10 @@ export class AuthService {
     return isPlatformBrowser(this.platformId) ? localStorage.getItem('userRole') : null;
   }
 
+  getUserId(): string | null {
+    return isPlatformBrowser(this.platformId) ? localStorage.getItem('userId') : null;
+  }
+
   getToken(): string | null {
     return this.tokenSubject.value;
   }
@@ -49,6 +56,7 @@ export class AuthService {
     if (isPlatformBrowser(this.platformId)) {
       localStorage.removeItem('token');
       localStorage.removeItem('userRole');
+      localStorage.removeItem('userId');
       this.tokenSubject.next(null);
     }
   }

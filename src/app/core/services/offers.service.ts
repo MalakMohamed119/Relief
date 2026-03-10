@@ -76,6 +76,31 @@ export class OffersService {
     }));
   }
 
+  /** GET /api/offers/browse – public browse for PSW (paged) */
+  browseOffers(options?: {
+    pageIndex?: number;
+    pageSize?: number;
+    sort?: string;
+    search?: string;
+  }): Observable<any[]> {
+    let params = new HttpParams();
+    if (options?.pageIndex != null) {
+      params = params.set('PageIndex', String(options.pageIndex));
+    }
+    if (options?.pageSize != null) {
+      params = params.set('PageSize', String(options.pageSize));
+    }
+    if (options?.sort) {
+      params = params.set('Sort', options.sort);
+    }
+    if (options?.search) {
+      params = params.set('Search', options.search);
+    }
+    return this.http
+      .get<any>(`${this.apiUrl}/api/offers/browse`, { params })
+      .pipe(map((res) => this.normalizeOffersResponse(res)));
+  }
+
   getOfferById(id: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}${OFFERS_BASE}/${id}`);
   }
@@ -89,7 +114,22 @@ export class OffersService {
   }
 
   applyToOffer(payload: ApplyToOfferDto): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/api/apply`, payload);
+    // Prevent PSW users who haven't completed their profile from applying
+    try {
+      const role = localStorage.getItem('userRole');
+      const pswComplete = localStorage.getItem('pswProfileComplete');
+      if (role === 'psw' && pswComplete !== '1') {
+        // return an observable error so callers can show a message
+        return new Observable(sub => {
+          sub.error({ message: 'Complete your PSW verification before applying or assisting.' });
+        });
+      }
+    } catch (e) {
+      // ignore localStorage access errors
+    }
+
+    // OpenAPI: POST /api/applications/apply
+    return this.http.post<any>(`${this.apiUrl}/api/applications/apply`, payload);
   }
 }
 

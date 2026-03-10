@@ -2,10 +2,11 @@ import { Component, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { ThemeService } from '../../../core/services/theme.service';
+import { ToastComponent } from '../toast/toast';
 
 @Component({
   selector: 'app-navbar',
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, ToastComponent],
   templateUrl: './navbar.html',
   styleUrls: ['./navbar.scss'],
   standalone: true

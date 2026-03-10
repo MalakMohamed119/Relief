@@ -1,66 +1,81 @@
 <app-navbar></app-navbar>
-<!-- notifications.component.html -->
+
 <div class="notifications-container">
   <div class="container">
-    <h2 class="section-title">Care Requests</h2>
-    
-    <div class="notifications-list">
-      <!-- Notification Item 1 -->
-      <div class="notification-card">
-        <div class="user-info">
-          <img src="/assets/person.png" alt="User" class="user-avatar">
-          <div class="user-details">
-            <h3 class="user-name">Ahmed Mohamed</h3>
-            <p class="request-time">Requested 10 min ago</p>
-            <div class="service-type">Elderly Care</div>
-          </div>
-        </div>
-        <div class="request-details">
-          <p><i class="fas fa-phone"></i> +201234567890</p>
-          <p><i class="far fa-calendar-alt"></i> February 15, 2024 - 10:00 AM</p>
-          <p><i class="fas fa-map-marker-alt"></i> Nasr City, Cairo</p>
-        </div>
-        <div class="action-buttons">
-          <button class="btn accept-btn" (click)="acceptRequest(1)">
-            <i class="fas fa-check"></i> Accept
-          </button>
-          <button class="btn reject-btn" (click)="rejectRequest(1)">
-            <i class="fas fa-times"></i> Reject
-          </button>
-          <button class="btn view-profile-btn" (click)="viewProfile(1)">
-            <i class="fas fa-user"></i> View Profile
-          </button>
-        </div>
-      </div>
+    <h2 class="section-title">Requests</h2>
 
-      <!-- Notification Item 2 -->
-      <div class="notification-card">
-        <div class="user-info">
-          <img src="/assets/person.png" alt="User" class="user-avatar">
-          <div class="user-details">
-            <h3 class="user-name">Sara Ahmed</h3>
-            <p class="request-time">Requested 25 min ago</p>
-            <div class="service-type">Nursing Care</div>
-          </div>
-        </div>
-        <div class="request-details">
-          <p><i class="fas fa-phone"></i> +201112345678</p>
-          <p><i class="far fa-calendar-alt"></i> February 16, 2024 - 2:00 PM</p>
-          <p><i class="fas fa-map-marker-alt"></i> Maadi, Cairo</p>
-        </div>
-        <div class="action-buttons">
-          <button class="btn accept-btn" (click)="acceptRequest(2)">
-            <i class="fas fa-check"></i> Accept
-          </button>
-          <button class="btn reject-btn" (click)="rejectRequest(2)">
-            <i class="fas fa-times"></i> Reject
-          </button>
-          <button class="btn view-profile-btn" (click)="viewProfile(2)">
-            <i class="fas fa-user"></i> View Profile
-          </button>
-        </div>
+    @if (loading) {
+      <div class="loading-container">
+        <div class="loading-spinner"></div>
+        <p>Loading applications...</p>
       </div>
-    </div>
+    } @else if (error) {
+      <div class="error-container">
+        <p class="error-msg">{{ error }}</p>
+        <button class="retry-btn" (click)="loadApplications()">
+          <i class="fas fa-redo"></i> Retry
+        </button>
+      </div>
+    } @else if (!applications.length) {
+      <div class="empty-state">
+        <i class="fas fa-user-plus"></i>
+        <p>No applications yet.</p>
+        <span>When PSWs apply to your offers, they will appear here.</span>
+      </div>
+    } @else {
+      <div class="applications-list">
+        @for (app of applications; track app.jobRequestItemId) {
+          <div class="application-card" [class.status-card]="app.statusCode === 2 || app.statusCode === 3">
+            <div class="user-info">
+              <img src="/assets/person.png" alt="User" class="user-avatar">
+              <div class="user-details">
+                <h4 class="user-name">{{ app.pswName }}</h4>
+                <p class="request-time">{{ app.offerTitle || 'Job Application' }}</p>
+                <div class="service-type" [class]="getStatusClass(app.status)">
+                  {{ app.status }}
+                </div>
+              </div>
+            </div>
+            <div class="request-details">
+              <p><i class="fas fa-phone"></i> {{ app.pswPhone || 'N/A' }}</p>
+              <p><i class="far fa-calendar-alt"></i> {{ formatDate(app.shiftDate) }}</p>
+              <p><i class="fas fa-clock"></i> {{ formatTime(app.startTime) }} - {{ formatTime(app.endTime) }}</p>
+              <p><i class="fas fa-map-marker-alt"></i> {{ app.address || 'N/A' }}</p>
+              @if (app.hourlyRate) {
+                <p><i class="fas fa-money-bill"></i> {{ app.hourlyRate }} EGP/hour</p>
+              }
+            </div>
+            <div class="action-buttons">
+              @if (app.statusCode === 1) {
+                <button class="btn accept-btn" 
+                        (click)="acceptRequest(app)" 
+                        [disabled]="isProcessing(app)">
+                  @if (acceptingId === app.jobRequestItemId) {
+                    <i class="fas fa-spinner fa-spin"></i> Accepting...
+                  } @else {
+                    <i class="fas fa-check"></i> Accept
+                  }
+                </button>
+                <button class="btn reject-btn" 
+                        (click)="rejectRequest(app)" 
+                        [disabled]="isProcessing(app)">
+                  @if (rejectingId === app.jobRequestItemId) {
+                    <i class="fas fa-spinner fa-spin"></i> Rejecting...
+                  } @else {
+                    <i class="fas fa-times"></i> Reject
+                  }
+                </button>
+              }
+              <button class="btn view-profile-btn" (click)="viewProfile(app.id)">
+                <i class="fas fa-user"></i> View Profile
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
   </div>
 </div>
+
 <app-footer></app-footer>
+
