@@ -1,0 +1,92 @@
+<div class="admin-page">
+  <div class="admin-header">
+    <div class="header-left">
+      <a routerLink="/admin/dashboard" class="back-btn" title="Back to Dashboard">
+        <i class="fa-solid fa-arrow-left"></i>
+      </a>
+      <h1>Pending PSW Verifications</h1>
+    </div>
+    <button type="button" class="refresh-btn" (click)="load()" [disabled]="isLoading">
+      <span>🔄</span>
+      {{ isLoading ? 'Loading...' : 'Refresh' }}
+    </button>
+  </div>
+
+  <div *ngIf="isLoading" class="loading">
+    <div class="loading-spinner"></div>
+    <div>Loading verifications...</div>
+  </div>
+
+  <div *ngIf="!isLoading && error" class="error">
+    <strong>Error:</strong> {{ error }}
+  </div>
+
+  <div *ngIf="!isLoading && !error && verifications.length === 0" class="empty">
+    <div class="empty-icon">✓</div>
+    <div>No pending verifications</div>
+    <div class="empty-subtitle">All PSW accounts have been verified</div>
+  </div>
+
+  <!-- Cards Grid -->
+  <div *ngIf="!isLoading && !error && verifications.length > 0" class="cards-grid">
+    <div *ngFor="let v of verifications" class="verification-card">
+      <div class="card-header">
+        <div class="psw-avatar">
+          {{ getDisplayName(v).charAt(0).toUpperCase() }}
+        </div>
+        <div class="psw-info">
+          <h3>{{ getDisplayName(v) }}</h3>
+          <span class="status-badge pending">Pending</span>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="info-row">
+          <span class="info-label">📧 Email</span>
+          <span class="info-value">{{ getEmail(v) }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">🆔 Identity</span>
+          <span class="info-value">{{ getIdentityType(v) }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">📅 Submitted</span>
+          <span class="info-value">{{ getSubmittedDate(v) }}</span>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <button type="button" class="btn btn-approve" (click)="approve(v.pswUserId)">
+          ✓ Approve
+        </button>
+        <button type="button" class="btn btn-reject" (click)="openReject(v.pswUserId)">
+          ✕ Reject
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reject Modal -->
+  <div *ngIf="selectedPswId" class="modal" (click)="cancelReject()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h2>Reject Verification</h2>
+      <p class="modal-description">
+        Please provide a reason for rejecting this verification request.
+      </p>
+      <textarea 
+        [(ngModel)]="rejectReason" 
+        placeholder="Enter rejection reason..."
+        maxlength="500"
+      ></textarea>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-cancel" (click)="cancelReject()">
+          Cancel
+        </button>
+        <button type="button" class="btn btn-reject" (click)="submitReject()">
+          Confirm Reject
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+

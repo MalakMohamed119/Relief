@@ -1,13 +1,15 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { isPlatformBrowser } from '@angular/common';
 import { environment } from '../../../environments/environment';
 import {
   CreateJobOfferDto,
   UpdateJobOfferDto,
   ApplyToOfferDto,
 } from '../models/api.models';
+import { AuthService } from './auth.service';
 
 const OFFERS_BASE = '/api/Offers';
 
@@ -16,6 +18,8 @@ const OFFERS_BASE = '/api/Offers';
 })
 export class OffersService {
   private readonly apiUrl = environment.apiUrl;
+  private authService = inject(AuthService);
+  private platformId = inject(PLATFORM_ID);
 
   constructor(private http: HttpClient) {}
 
@@ -105,6 +109,32 @@ export class OffersService {
     return this.http.get<any>(`${this.apiUrl}${OFFERS_BASE}/${id}`);
   }
 
+  /** GET /api/offers/{id}/details – returns full offer details with shifts for PSW */
+  getOfferDetails(id: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}${OFFERS_BASE}/${id}`).pipe(
+      map((res) => this.normalizeOfferDetails(res))
+    );
+  }
+
+  /** Normalize detailed offer response */
+  private normalizeOfferDetails(res: any): any {
+    if (!res) return null;
+    return {
+      id: res.id ?? res.Id ?? res.offerId ?? res.offerID,
+      title: res.title ?? res.Title ?? '',
+      description: res.description ?? res.Description ?? '',
+      address: res.address ?? res.Address ?? '',
+      hourlyRate: res.hourlyRate ?? res.HourlyRate ?? res.hourly_rate ?? null,
+      latitude: res.latitude ?? res.Latitude,
+      longitude: res.longitude ?? res.Longitude,
+      shifts: res.shifts ?? res.Shifts ?? [],
+      careHomeId: res.careHomeId ?? res.CareHomeId,
+      careHomeName: res.careHomeName ?? res.CareHomeName ?? '',
+      requirements: res.requirements ?? res.Requirements ?? '',
+      createdAt: res.createdAt ?? res.CreatedAt,
+    };
+  }
+
   updateOffer(id: string, payload: UpdateJobOfferDto): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}${OFFERS_BASE}/${id}`, payload);
   }
@@ -115,17 +145,22 @@ export class OffersService {
 
   applyToOffer(payload: ApplyToOfferDto): Observable<any> {
     // Prevent PSW users who haven't completed their profile from applying
-    try {
-      const role = localStorage.getItem('userRole');
-      const pswComplete = localStorage.getItem('pswProfileComplete');
-      if (role === 'psw' && pswComplete !== '1') {
-        // return an observable error so callers can show a message
-        return new Observable(sub => {
-          sub.error({ message: 'Complete your PSW verification before applying or assisting.' });
-        });
-      }
-    } catch (e) {
-      // ignore localStorage access errors
+    const role = this.authService.getUserRole();
+    const pswComplete = isPlatformBrowser(this.platformId) ? localStorage.getItem('pswProfileComplete') : null;
+    const verificationStatus = this.authService.getVerificationStatus();
+    const isPsw = role?.toLowerCase() === 'psw' || role?.toLowerCase() === 'caregiver';
+    
+    if (isPsw && (!pswComplete || pswComplete !== '1')) {
+      // return an observable error so callers can show a message
+      return new Observable(sub => {
+        sub.error({ message: 'Complete your PSW profile before applying or assisting.' });
+      });
+    }
+    
+    if (isPsw && verificationStatus === 'pending') {
+      return new Observable(sub => {
+        sub.error({ message: 'Your verification is still pending. You cannot apply for offers until approved.' });
+      });
     }
 
     // OpenAPI: POST /api/applications/apply

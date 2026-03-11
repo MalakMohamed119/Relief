@@ -1,5 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { PswNav } from "../../../../shared/components/psw-nav/psw-nav";
 import { Footer } from "../../../../shared/components/footer/footer";
@@ -19,7 +20,8 @@ interface ProfileInfo {
   selector: 'app-psw-profile',
   standalone: true,
   imports: [
-    CommonModule, 
+    CommonModule,
+    FormsModule,
     RouterModule, 
     PswNav, 
     Footer
@@ -42,6 +44,21 @@ export class PswProfile implements OnInit {
   };
 
   isLoading = true;
+  isSaving = false;
+
+  editModel = {
+    firstName: '',
+    lastName: '',
+    phoneNumber: '',
+    address: {
+      apartmentNumber: 0,
+      street: '',
+      city: '',
+      state: '',
+      postalCode: '',
+      country: ''
+    }
+  };
 
   ngOnInit(): void {
     this.loadProfile();
@@ -62,6 +79,19 @@ export class PswProfile implements OnInit {
           joinDate: '',
           profileImage: null
         };
+        this.editModel = {
+          firstName: p.firstName ?? '',
+          lastName: p.lastName ?? '',
+          phoneNumber: p.phoneNumber ?? '',
+          address: {
+            apartmentNumber: p.address?.apartmentNumber ?? 0,
+            street: p.address?.street ?? '',
+            city: p.address?.city ?? '',
+            state: p.address?.state ?? '',
+            postalCode: p.address?.postalCode ?? '',
+            country: p.address?.country ?? ''
+          }
+        };
         this.isLoading = false;
         this.cdr.detectChanges();
       },
@@ -69,6 +99,23 @@ export class PswProfile implements OnInit {
         console.error('Failed to load profile', err);
         this.notifications.show('Failed to load profile.', 'error');
         this.isLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  saveProfile(): void {
+    this.isSaving = true;
+    this.profileService.updateMyProfile(this.editModel).subscribe({
+      next: () => {
+        this.notifications.show('Profile updated successfully.', 'success');
+        this.isSaving = false;
+        this.loadProfile();
+      },
+      error: (err) => {
+        console.error('Failed to update profile', err);
+        this.notifications.show('Failed to update profile.', 'error');
+        this.isSaving = false;
         this.cdr.detectChanges();
       }
     });

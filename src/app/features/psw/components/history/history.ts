@@ -4,6 +4,8 @@ import { RouterModule } from '@angular/router';
 import { PswNav } from "../../../../shared/components/psw-nav/psw-nav";
 import { Footer } from "../../../../shared/components/footer/footer";
 import { PswApplicationsService } from '../../../../core/services/psw-applications.service';
+import { NotificationService } from '../../../../core/services/notification.service';
+import { CancelApplicationDto } from '../../../../core/models/api.models';
 
 interface PswApplication {
   jobRequestItemId: string;
@@ -54,7 +56,8 @@ export class History implements OnInit {
 
   constructor(
     private pswApplicationsService: PswApplicationsService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private notifications: NotificationService
   ) {}
 
   ngOnInit(): void {
@@ -65,11 +68,8 @@ export class History implements OnInit {
     this.isLoading = true;
     this.pswApplicationsService.getPswApplications().subscribe({
       next: (apps: any[]) => {
-        const decided = (apps ?? []).filter((a: any) => {
-          const code = Number(a.statusCode ?? a.status ?? 1);
-          return code === 2 || code === 3 || code === 5;
-        });
-        this.applications = decided.map(app => new PswApplicationPresenter(app));
+        const all = apps ?? [];
+        this.applications = all.map(app => new PswApplicationPresenter(app));
         this.isLoading = false;
         this.cdr.detectChanges();
       },
@@ -86,5 +86,42 @@ export class History implements OnInit {
 
   closeDetails(): void {
     this.selectedApp = null;
+  }
+
+  cancel(app: PswApplicationPresenter): void {
+    if (!app?.app?.jobRequestItemId) {
+      this.notifications.show('Cannot cancel: missing request id.', 'error');
+      return;
+    }
+    const payload: CancelApplicationDto = {
+      jobRequestItemId: app.app.jobRequestItemId,
+    };
+    this.pswApplicationsService.cancelApplication(payload).subscribe({
+      next: () => {
+        this.notifications.show('Application cancelled successfully.', 'success');
+        app.app.statusCode = 5;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        const msg = err?.error?.message || err?.message || 'Failed to cancel application.';
+        this.notifications.show(msg, 'error');
+      }
+    });
+  }
+
+  getPendingCount(): number {
+    return this.applications.filter(a => a.statusLabel === 'pending').length;
+  }
+
+  getAcceptedCount(): number {
+    return this.applications.filter(a => a.statusLabel === 'accepted').length;
+  }
+
+  getRejectedCount(): number {
+    return this.applications.filter(a => a.statusLabel === 'rejected').length;
+  }
+
+  getCancelledCount(): number {
+    return this.applications.filter(a => a.statusLabel === 'cancelled').length;
   }
 }

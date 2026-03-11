@@ -1,4 +1,5 @@
 $primary-blue: #0b4897;
+$primary-light: #0b96b1;
 $soft-gray: #64748b;
 $danger-red: #dc2626;
 
@@ -148,7 +149,7 @@ $danger-red: #dc2626;
 
         &:hover, &.active-btn {
           background-color: #2d3748;
-          color: #63b3ed;
+          color: $primary-light;
         }
       }
 

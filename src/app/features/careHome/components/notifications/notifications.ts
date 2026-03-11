@@ -1,5 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { Navbar } from '../../../../shared/components/navbar/navbar';
 import { Footer } from '../../../../shared/components/footer/footer';
@@ -27,7 +28,7 @@ interface Application {
 @Component({
   selector: 'app-notifications',
   standalone: true,
-  imports: [CommonModule, Navbar, Footer, RouterModule],
+  imports: [CommonModule, FormsModule, Navbar, Footer, RouterModule],
   templateUrl: './notifications.html',
   styleUrl: './notifications.scss',
 })
@@ -38,6 +39,12 @@ export class Notifications implements OnInit {
   acceptingId: string | null = null;
   rejectingId: string | null = null;
   currentOfferId: string | null = null;
+  activeTab: 'pending' | 'accepted' | 'rejected' = 'pending';
+  
+  // Modal properties
+  showRejectModal = false;
+  rejectReason = '';
+  selectedAppId: string | null = null;
 
   constructor(
     private applicationsService: ApplicationsService,
@@ -76,6 +83,22 @@ export class Notifications implements OnInit {
     });
   }
 
+  getPendingCount(): number {
+    return this.applications.filter(app => app.statusCode === 1).length;
+  }
+
+  getPendingApplications(): Application[] {
+    return this.applications.filter(app => app.statusCode === 1);
+  }
+
+  getAcceptedApplications(): Application[] {
+    return this.applications.filter(app => app.statusCode === 2);
+  }
+
+  getRejectedApplications(): Application[] {
+    return this.applications.filter(app => app.statusCode === 3);
+  }
+
   acceptRequest(app: Application): void {
     if (!app.jobRequestItemId) {
       this.notificationService.show('Missing application details', 'error');
@@ -100,38 +123,59 @@ export class Notifications implements OnInit {
           this.applications[idx].status = 'Accepted';
         }
         this.acceptingId = null;
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Accept error:', err);
         this.notificationService.show(err?.error?.message || 'Failed to accept application', 'error');
         this.acceptingId = null;
+        this.cdr.detectChanges();
       }
     });
   }
 
-  rejectRequest(app: Application): void {
-    if (!app.jobRequestItemId) {
-      this.notificationService.show('Missing application details', 'error');
+  openRejectModal(app: Application): void {
+    this.selectedAppId = app.jobRequestItemId;
+    this.rejectReason = '';
+    this.showRejectModal = true;
+  }
+
+  closeRejectModal(): void {
+    this.showRejectModal = false;
+    this.rejectReason = '';
+    this.selectedAppId = null;
+  }
+
+  confirmReject(): void {
+    if (!this.selectedAppId) {
+      this.notificationService.show('No application selected', 'error');
+      return;
+    }
+    if (!this.rejectReason.trim()) {
+      this.notificationService.show('Please enter a rejection reason', 'error');
       return;
     }
 
-    this.rejectingId = app.jobRequestItemId;
+    this.rejectingId = this.selectedAppId;
     this.applicationsService.rejectShift({
-      jobRequestItemId: app.jobRequestItemId
+      jobRequestItemId: this.selectedAppId
     }).subscribe({
       next: () => {
         this.notificationService.show('Application rejected', 'success');
-        const idx = this.applications.findIndex(a => a.jobRequestItemId === app.jobRequestItemId);
+        const idx = this.applications.findIndex(a => a.jobRequestItemId === this.selectedAppId);
         if (idx !== -1) {
           this.applications[idx].statusCode = 3;
           this.applications[idx].status = 'Rejected';
         }
         this.rejectingId = null;
+        this.closeRejectModal();
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Reject error:', err);
         this.notificationService.show(err?.error?.message || 'Failed to reject application', 'error');
         this.rejectingId = null;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -161,14 +205,8 @@ export class Notifications implements OnInit {
     return time;
   }
 
-  getStatusClass(status: string): string {
-    switch (status.toLowerCase()) {
-      case 'accepted': return 'status-accepted';
-      case 'rejected': return 'status-rejected';
-      case 'pending': return 'status-pending';
-      case 'cancelled': return 'status-cancelled';
-      default: return 'status-pending';
-    }
+  getPswName(app: Application): string {
+    return app.pswName || 'Unknown PSW';
   }
 
   isProcessing(app: Application): boolean {

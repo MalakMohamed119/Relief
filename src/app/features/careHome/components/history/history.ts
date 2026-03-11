@@ -19,6 +19,9 @@ export class History implements OnInit {
   offersLoading = true;
   offersError: string | null = null;
   selectedOffer: any | null = null;
+  selectedOfferLoading = false;
+  selectedOfferError: string | null = null;
+  activeTab: 'active' | 'completed' = 'active';
 
   constructor(
     private offersService: OffersService,
@@ -59,13 +62,40 @@ export class History implements OnInit {
   }
 
   onViewOffer(offer: any): void {
+    if (!offer?.id) {
+      this.notifications.show('Offer id is missing, cannot view details.', 'error', 4000);
+      return;
+    }
+
+    // show basic info immediately
     this.selectedOffer = offer;
-    // mark for check so modal appears when using OnPush or change detection
+    this.selectedOfferLoading = true;
+    this.selectedOfferError = null;
     this.cdr.markForCheck();
+
+    this.offersService.getOfferById(offer.id).subscribe({
+      next: (full) => {
+        this.selectedOffer = {
+          ...offer,
+          ...full,
+          shifts: full?.shifts ?? full?.Shifts ?? offer.shifts ?? []
+        };
+        this.selectedOfferLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        console.error('Failed to load offer details', err);
+        this.selectedOfferLoading = false;
+        this.selectedOfferError = err?.error?.message ?? 'Failed to load offer details.';
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   closeModal(): void {
     this.selectedOffer = null;
+    this.selectedOfferLoading = false;
+    this.selectedOfferError = null;
     this.cdr.markForCheck();
   }
 

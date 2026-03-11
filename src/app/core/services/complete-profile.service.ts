@@ -1,7 +1,8 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { AuthService } from './auth.service';
 
 export interface CompleteProfilePayload {
   proofIdentityType: string;
@@ -14,19 +15,19 @@ export interface CompleteProfilePayload {
   firstAidOrCPRFile?: File;
 }
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class CompleteProfileService {
   private readonly apiUrl = environment.apiUrl;
+  private authService = inject(AuthService);
 
   constructor(private http: HttpClient) {}
 
   completeProfile(payload: CompleteProfilePayload): Observable<any> {
     const formData = new FormData();
 
+    // التأكد من أن الأسماء تطابق الـ Backend (Case Sensitive)
     formData.append('ProofIdentityType', payload.proofIdentityType);
-    formData.append('WorkStatus', String(payload.workStatus));
+    formData.append('WorkStatus', String(payload.workStatus)); 
     formData.append('ProofIdentityFile', payload.proofIdentityFile);
     formData.append('PswCertificateFile', payload.pswCertificateFile);
     formData.append('CVFile', payload.cvFile);
@@ -37,8 +38,13 @@ export class CompleteProfileService {
       formData.append('FirstAidOrCPRFile', payload.firstAidOrCPRFile);
     }
 
-    // OpenAPI: POST /api/psw/profile (multipart/form-data)
-    return this.http.post<any>(`${this.apiUrl}/api/psw/profile`, formData);
+    return this.http.post<any>(`${this.apiUrl}/api/psw/profile`, formData).pipe(
+      tap(() => {
+        // نداء الميثود لتحديث الحالة محلياً
+        this.authService.setProfileComplete();
+        // Set verification status to pending after completing profile
+        this.authService.setVerificationStatus('pending');
+      })
+    );
   }
 }
-

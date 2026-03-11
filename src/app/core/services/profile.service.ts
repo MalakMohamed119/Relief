@@ -1,13 +1,16 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AddressDTO, UpdateProfileDto } from '../models/api.models';
+import { AuthService } from './auth.service';
 
 export interface ProfileDto extends UpdateProfileDto {
   email?: string | null;
   id?: string;
   role?: string | null;
+  profileImage?: string | null;
+  verificationStatus?: 'pending' | 'approved' | 'rejected' | null;
 }
 
 @Injectable({
@@ -15,12 +18,20 @@ export interface ProfileDto extends UpdateProfileDto {
 })
 export class ProfileService {
   private readonly apiUrl = environment.apiUrl;
+  private authService = inject(AuthService);
 
   constructor(private http: HttpClient) {}
 
   /** GET /api/profile – current logged-in user's profile */
   getMyProfile(): Observable<ProfileDto> {
-    return this.http.get<ProfileDto>(`${this.apiUrl}/api/profile`);
+    return this.http.get<ProfileDto>(`${this.apiUrl}/api/profile`).pipe(
+      tap((profile) => {
+        // Set verification status for PSW users
+        if (profile?.verificationStatus) {
+          this.authService.setVerificationStatus(profile.verificationStatus);
+        }
+      })
+    );
   }
 
   /** PUT /api/profile – update current user's profile */

@@ -91,4 +91,16 @@ export interface UpdateProfileDto {
   address: AddressDTO;
 }
 
+export interface AdminRejectDto {
+  reason: string;
+}
+
+export interface ProfileDto extends UpdateProfileDto {
+  email?: string | null;
+  id?: string;
+  role?: string | null;
+  profileImage?: string | null;
+  verificationStatus?: 'pending' | 'approved' | 'rejected' | null;
+}
+
 

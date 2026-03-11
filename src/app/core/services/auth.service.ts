@@ -53,6 +53,12 @@ export class AuthService {
   }
 
   logout(): void {
+    // Call backend logout endpoint (fire-and-forget)
+    this.http.post<void>(`${this.apiUrl}/api/auth/logout`, {}).subscribe({
+      next: () => {},
+      error: () => {},
+    });
+
     if (isPlatformBrowser(this.platformId)) {
       localStorage.removeItem('token');
       localStorage.removeItem('userRole');
@@ -63,5 +69,21 @@ export class AuthService {
 
   isAuthenticated(): boolean {
     return !!this.tokenSubject.value;
+  }
+
+  setProfileComplete(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem('pswProfileComplete', '1');
+    }
+  }
+
+  setVerificationStatus(status: 'pending' | 'approved' | 'rejected'): void {
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem('pswVerificationStatus', status);
+    }
+  }
+
+  getVerificationStatus(): string | null {
+    return isPlatformBrowser(this.platformId) ? localStorage.getItem('pswVerificationStatus') : null;
   }
 }

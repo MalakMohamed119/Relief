@@ -1,0 +1,149 @@
+<div class="complete-profile-container">
+  <div class="card">
+    <h2>Complete your PSW profile</h2>
+    <p class="muted">Upload your documents to verify your profile.</p>
+
+    <form (ngSubmit)="submit()" [formGroup]="form">
+      <!-- Work Status Checkbox -->
+      <div class="checkbox-row">
+        <input type="checkbox" id="workStatus" formControlName="workStatus" />
+        <label for="workStatus">Currently available for work</label>
+      </div>
+
+      <!-- Identity Type Selection -->
+      <div class="form-group">
+        <label>Proof identity type</label>
+        <select class="custom-select" formControlName="proofIdentityType" (change)="onIdentityTypeChange()">
+          <option value="ID">ID</option>
+          <option value="Passport">Passport</option>
+          <option value="License">License</option>
+        </select>
+      </div>
+
+      <!-- ID or License: Show two fields (Front & Back) -->
+      <div *ngIf="showTwoSides()" class="two-sides-container">
+        <div class="side-field">
+          <label>Proof identity (Front) <span class="required">*</span></label>
+          <input #proofFrontInput type="file" hidden (change)="onFileChange('proofIdentityFileFront', $event)" accept="image/*,.pdf" />
+          <div *ngIf="previews['proofIdentityFileFront']" class="preview-box">
+            <img [src]="previews['proofIdentityFileFront']" alt="Front Preview" />
+          </div>
+          <div class="file-row">
+            <button type="button" class="file-btn" (click)="proofFrontInput.click()">
+              <i class="fas fa-upload"></i> Choose Front
+            </button>
+            <div class="file-info">{{ selectedFileNames['proofIdentityFileFront'] || 'No file chosen' }}</div>
+          </div>
+        </div>
+        <div class="side-field">
+          <label>Proof identity (Back) <span class="required">*</span></label>
+          <input #proofBackInput type="file" hidden (change)="onFileChange('proofIdentityFileBack', $event)" accept="image/*,.pdf" />
+          <div *ngIf="previews['proofIdentityFileBack']" class="preview-box">
+            <img [src]="previews['proofIdentityFileBack']" alt="Back Preview" />
+          </div>
+          <div class="file-row">
+            <button type="button" class="file-btn" (click)="proofBackInput.click()">
+              <i class="fas fa-upload"></i> Choose Back
+            </button>
+            <div class="file-info">{{ selectedFileNames['proofIdentityFileBack'] || 'No file chosen' }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Passport: Show one field only -->
+      <div *ngIf="!showTwoSides()" class="single-file-container">
+        <div class="file-section">
+          <label>Proof identity file <span class="required">*</span></label>
+          <input #proofInput type="file" hidden (change)="onFileChange('proofIdentityFile', $event)" accept="image/*,.pdf" />
+          
+          <div *ngIf="previews['proofIdentityFile']" class="preview-box">
+            <img [src]="previews['proofIdentityFile']" alt="Preview" />
+          </div>
+
+          <div class="file-row">
+            <button type="button" class="file-btn" (click)="proofInput.click()">
+              <i class="fas fa-upload"></i> Choose file
+            </button>
+            <div class="file-info">{{ selectedFileNames['proofIdentityFile'] || 'No file chosen' }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PSW Certificate -->
+      <div class="file-section">
+        <label>PSW certificate file <span class="required">*</span></label>
+        <input #certInput type="file" hidden (change)="onFileChange('pswCertificateFile', $event)" accept="image/*,.pdf" />
+        <div *ngIf="previews['pswCertificateFile']" class="preview-box">
+          <img [src]="previews['pswCertificateFile']" alt="Preview" />
+        </div>
+        <div class="file-row">
+          <button type="button" class="file-btn" (click)="certInput.click()">
+            <i class="fas fa-upload"></i> Choose file
+          </button>
+          <div class="file-info">{{ selectedFileNames['pswCertificateFile'] || 'No file chosen' }}</div>
+        </div>
+      </div>
+
+      <!-- CV File -->
+      <div class="file-section">
+        <label>CV file <span class="required">*</span></label>
+        <input #cvInput type="file" hidden (change)="onFileChange('cvFile', $event)" accept="image/*,.pdf,.doc,.docx" />
+        <div class="file-row">
+          <button type="button" class="file-btn" (click)="cvInput.click()">
+            <i class="fas fa-upload"></i> Choose file
+          </button>
+          <div class="file-info">{{ selectedFileNames['cvFile'] || 'No file chosen' }}</div>
+        </div>
+      </div>
+
+      <!-- Immunization Record -->
+      <div class="file-section">
+        <label>Immunization record file <span class="required">*</span></label>
+        <input #immunInput type="file" hidden (change)="onFileChange('immunizationRecordFile', $event)" accept="image/*,.pdf" />
+        <div class="file-row">
+          <button type="button" class="file-btn" (click)="immunInput.click()">
+            <i class="fas fa-upload"></i> Choose file
+          </button>
+          <div class="file-info">{{ selectedFileNames['immunizationRecordFile'] || 'No file chosen' }}</div>
+        </div>
+      </div>
+
+      <!-- Criminal Record -->
+      <div class="file-section">
+        <label>Criminal record file <span class="required">*</span></label>
+        <input #criminalInput type="file" hidden (change)="onFileChange('criminalRecordFile', $event)" accept="image/*,.pdf" />
+        <div class="file-row">
+          <button type="button" class="file-btn" (click)="criminalInput.click()">
+            <i class="fas fa-upload"></i> Choose file
+          </button>
+          <div class="file-info">{{ selectedFileNames['criminalRecordFile'] || 'No file chosen' }}</div>
+        </div>
+      </div>
+
+      <!-- First Aid / CPR Certificate (Optional) -->
+      <div class="file-section">
+        <label>First aid / CPR certificate <span class="optional">(optional)</span></label>
+        <input #firstAidInput type="file" hidden (change)="onFileChange('firstAidOrCPRFile', $event)" accept="image/*,.pdf" />
+        <div class="file-row">
+          <button type="button" class="file-btn" (click)="firstAidInput.click()">
+            <i class="fas fa-upload"></i> Choose file
+          </button>
+          <div class="file-info">{{ selectedFileNames['firstAidOrCPRFile'] || 'No file chosen' }}</div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="actions">
+        <button type="button" class="btn btn-ghost" (click)="skip()">Skip</button>
+        <button type="submit" class="btn btn-primary" [disabled]="isSubmitting">
+          @if (!isSubmitting) {
+            <span>Submit Profile</span>
+          } @else {
+            <span>Submitting...</span>
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+

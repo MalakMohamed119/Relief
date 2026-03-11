@@ -36,13 +36,36 @@ body {
   height: 100%;
 }
 
-/* Global color variables */
+/* Global color variables - Blue Theme */
 :root {
-  --primary-color: #034a90bb;
-  --primary-gradient: linear-gradient(135deg, #0b96b1 0%, #0b71a5 50%, #0b4897 100%);
-  --primary-hover: #054779;
+  /* Primary Colors - Blue Palette */
+  --primary-50: #0b96b1;
+  --primary-100: #0b8496;
+  --primary-200: #0b4897;
+  --primary-300: #0b5a8a;
+  --primary-400: #054779;
+  --primary-500: #043c6b;
+  
+  --primary-color: #0b4897;
+  --primary-light: #0b96b1;
+  --primary-dark: #054779;
+  --primary-gradient: linear-gradient(135deg, #0b96b1 0%, #0b4897 50%, #054779 100%);
+  --primary-hover: #0b5a8a;
+  
+  --success-color: #0284c7;
+  --success-light: #e0f2fe;
+  --warning-color: #f59e0b;
+  --warning-light: #fef3c7;
+  --danger-color: #ef4444;
+  --danger-light: #fee2e2;
+  
   --bg-light: #f8fafc;
   --text-gray: #64748b;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-light: #94a3b8;
+  --border-color: #e2e8f0;
+  
   --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
