@@ -1,23 +1,27 @@
-import { Component, ChangeDetectorRef, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, ChangeDetectorRef, inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ToastComponent } from '../../../../shared/components/toast/toast';
 import { CompleteProfileService } from '../../../../core/services/complete-profile.service';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-psw-complete-profile',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, ToastComponent],
   templateUrl: './complete-profile.html',
   styleUrls: ['./complete-profile.scss']
 })
-export class PswCompleteProfile {
+export class PswCompleteProfile implements OnInit {
   private svc = inject(CompleteProfileService);
   private notifications = inject(NotificationService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
   private fb = inject(FormBuilder);
+  private authService = inject(AuthService);
+  private platformId = inject(PLATFORM_ID);
 
   form: FormGroup;
   isSubmitting = false;
@@ -37,6 +41,22 @@ export class PswCompleteProfile {
       criminalRecordFile: [null, Validators.required],
       firstAidOrCPRFile: [null]
     });
+  }
+
+  ngOnInit(): void {
+    // التحقق من أن المستخدم لم يكمل الملف الشخصي بالفعل
+    if (isPlatformBrowser(this.platformId as Object)) {
+      const verificationStatus = this.authService.getVerificationStatus();
+      const profileComplete = localStorage.getItem('pswProfileComplete');
+      
+      // إذا كان لديه حالة تحقق (pending أو approved) أو تم وضع علامة الاكتمال
+      // لا نريد التوجيه إذا كان status = rejected لأن المستخدم يحتاج لإعادة إدخال البيانات
+      if ((verificationStatus === 'pending' || verificationStatus === 'approved' || profileComplete === '1') && verificationStatus !== 'rejected') {
+        // توجيه المستخدم إلى الصفحة الرئيسية لـ PSW
+        this.router.navigate(['/psw']);
+        return;
+      }
+    }
   }
 
   // Check if selected type needs two sides (ID or License)
@@ -123,8 +143,13 @@ export class PswCompleteProfile {
     
     this.svc.completeProfile(formValue).subscribe({
       next: () => {
-        this.notifications.show('Profile completed!', 'success');
-        this.router.navigate(['/psw/offers']);
+        // Profile completed successfully
+        // Clear the needs profile completion flag and mark as complete
+        this.authService.clearNeedsProfileCompletion();
+        this.authService.setProfileComplete();
+        
+        this.notifications.show('Profile completed successfully!', 'success');
+        this.router.navigate(['/psw']);
       },
       error: (err: any) => {
         this.isSubmitting = false;
@@ -134,5 +159,9 @@ export class PswCompleteProfile {
     });
   }
 
-  skip() { this.router.navigate(['/psw']); }
+  skip() { 
+    // After skip, clear the needs profile completion flag and go to PSW dashboard
+    this.authService.clearNeedsProfileCompletion();
+    this.router.navigate(['/psw']); 
+  }
 }

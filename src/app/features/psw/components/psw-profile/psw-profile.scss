@@ -80,6 +80,40 @@ $radius-xl: 24px;
   z-index: 3;
 }
 
+// Loading Container
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  background: $white;
+  border-radius: $radius-xl;
+  box-shadow: $shadow-lg;
+  padding: 3rem;
+
+  .spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid $border-color;
+    border-top-color: $primary-color;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  p {
+    margin-top: 1rem;
+    color: $text-secondary;
+    font-size: 1rem;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 // Main Profile Card
 .profile-main-card {
   background: $white;
@@ -205,8 +239,79 @@ $radius-xl: 24px;
     color: #92400e;
   }
 
+  &.rejected {
+    background: #fee2e2;
+    color: #dc2626;
+  }
+
+  &.not-verified {
+    background: #f3f4f6;
+    color: $text-secondary;
+  }
+
   i {
     font-size: 0.75rem;
+  }
+}
+
+// Profile Alert
+.profile-alert {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-radius: $radius-md;
+  margin: 1rem 0;
+  align-items: flex-start;
+
+  &.alert-warning {
+    background: #fef3c7;
+    border: 1px solid #fcd34d;
+    
+    .alert-icon {
+      color: #d97706;
+    }
+  }
+
+  &.alert-pending {
+    background: #e0f2fe;
+    border: 1px solid #7dd3fc;
+    
+    .alert-icon {
+      color: #0284c7;
+    }
+  }
+
+  &.alert-danger {
+    background: #fee2e2;
+    border: 1px solid #fca5a5;
+    
+    .alert-icon {
+      color: #dc2626;
+    }
+  }
+
+  .alert-icon {
+    flex-shrink: 0;
+    font-size: 1.25rem;
+    padding-top: 0.1rem;
+  }
+
+  .alert-content {
+    flex: 1;
+
+    p {
+      margin: 0 0 0.5rem;
+      font-size: 0.9rem;
+      color: $text-primary;
+      
+      &:last-of-type {
+        margin-bottom: 0.75rem;
+      }
+    }
+
+    .btn {
+      margin-top: 0.25rem;
+    }
   }
 }
 

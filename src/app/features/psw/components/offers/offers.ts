@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { PswNav } from '../../../../shared/components/psw-nav/psw-nav';
 import { Footer } from '../../../../shared/components/footer/footer';
+import { ToastComponent } from '../../../../shared/components/toast/toast';
 import { OffersService } from '../../../../core/services/offers.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { AuthService } from '../../../../core/services/auth.service';
@@ -27,7 +28,7 @@ interface OfferDetails extends BrowseOffer {
 @Component({
   selector: 'app-psw-offers',
   standalone: true,
-  imports: [CommonModule, RouterModule, DatePipe, FormsModule, PswNav, Footer],
+  imports: [CommonModule, RouterModule, DatePipe, FormsModule, PswNav, Footer, ToastComponent],
   templateUrl: './offers.html',
   styleUrl: './offers.scss',
 })
@@ -89,25 +90,22 @@ export class PswOffers implements OnInit {
     if (!offer?.id) return;
     
     // Check if PSW has completed profile before opening modal
-    const role = this.authService.getUserRole();
-    const pswComplete = localStorage.getItem('pswProfileComplete');
     const verificationStatus = this.authService.getVerificationStatus();
+    const role = this.authService.getUserRole();
     const isPsw = role?.toLowerCase() === 'psw' || role?.toLowerCase() === 'caregiver';
     
-    console.log('openDetails check - role:', role, 'isPsw:', isPsw, 'pswComplete:', pswComplete, 'verificationStatus:', verificationStatus);
+    console.log('openDetails check - role:', role, 'isPsw:', isPsw, 'verificationStatus:', verificationStatus);
     
-    // If PSW hasn't completed profile → redirect to complete profile form
-    if (isPsw && (!pswComplete || pswComplete !== '1')) {
-      console.log('Redirecting to complete profile');
-      this.notifications.show('Complete your profile and upload documents before applying to offers.', 'error');
-      this.router.navigate(['/psw/complete-profile']);
-      return;
-    }
-    
-    // If PSW completed but verification is pending → show error and don't open modal
-    if (isPsw && verificationStatus === 'pending') {
-      console.log('Showing pending message');
-      this.notifications.show('Your verification is still pending. You cannot apply for offers until approved.', 'error');
+    if (isPsw && verificationStatus !== 'approved') {
+      let msg = 'You have not completed your profile';
+      if (verificationStatus === 'pending') {
+        msg = 'You are not verified yet';
+      }
+      console.log('Blocking apply -', msg);
+      this.notifications.show(msg, 'error');
+      if (verificationStatus !== 'pending') {
+        this.router.navigate(['/psw/complete-profile']);
+      }
       return;
     }
     
@@ -159,30 +157,29 @@ export class PswOffers implements OnInit {
     if (!offer?.id) return;
 
     // Check if PSW has completed profile and is verified
-    const role = this.authService.getUserRole();
-    const pswComplete = localStorage.getItem('pswProfileComplete');
     const verificationStatus = this.authService.getVerificationStatus();
+    const role = this.authService.getUserRole();
     const isPsw = role?.toLowerCase() === 'psw' || role?.toLowerCase() === 'caregiver';
     
-    console.log('Apply check - role:', role, 'isPsw:', isPsw, 'pswComplete:', pswComplete, 'verificationStatus:', verificationStatus);
+    console.log('Apply check - role:', role, 'isPsw:', isPsw, 'verificationStatus:', verificationStatus);
     
-    // If PSW hasn't completed profile OR profile not verified
-    if (isPsw && (!pswComplete || pswComplete !== '1')) {
-      console.log('Redirecting to complete profile');
-      this.notifications.show('Complete your profile and upload documents before applying to offers.', 'error');
-      this.router.navigate(['/psw/complete-profile']);
-      return;
-    }
-    
-    if (isPsw && verificationStatus === 'pending') {
-      console.log('Showing pending message');
-      this.notifications.show('Your verification is still pending. You cannot apply for offers until approved.', 'error');
+    if (isPsw && verificationStatus !== 'approved') {
+      let msg = 'You have not completed your profile';
+      if (verificationStatus === 'pending') {
+        msg = 'You are not verified yet';
+      }
+      console.log('Blocking apply -', msg);
+      this.notifications.show(msg, 'error');
+      if (verificationStatus !== 'pending') {
+        this.router.navigate(['/psw/complete-profile']);
+      }
       return;
     }
 
-    // If no shifts selected, show error
-    if (this.selectedShiftIds.length === 0) {
-      this.notifications.show('Please select at least one shift to apply.', 'error');
+    // Direct card apply requires shifts or open modal
+    if (this.selectedOffer !== offer || this.selectedShiftIds.length === 0) {
+      this.notifications.show('Please view details and select shifts first.', 'info');
+      this.openDetails(offer);
       return;
     }
 
@@ -190,20 +187,23 @@ export class PswOffers implements OnInit {
 
     const payload: ApplyToOfferDto = {
       offerId: offer.id,
-      shiftIds: this.selectedShiftIds.length > 0 ? this.selectedShiftIds : null,
+      shiftIds: this.selectedShiftIds,
     };
 
     this.offersService.applyToOffer(payload).subscribe({
       next: () => {
-        this.notifications.show('Application submitted successfully.', 'success');
+        this.notifications.show('Request sent to Care Home successfully!', 'success');
         this.applyingOfferId = null;
         this.closeDetails();
+        this.loadOffers(); // Refresh list
       },
       error: (err) => {
         console.error('Apply error', err);
-        let msg = err?.error?.message || err?.message || 'Failed to apply to offer.';
+        let msg = err?.error?.message || err?.message || 'Failed to send request.';
         if (err?.status === 403) {
-          msg = 'You are not allowed to apply to this offer (403 Forbidden). Please check your PSW verification or permissions.';
+          msg = 'Not authorized to apply.';
+        } else if (err?.status === 409) {
+          msg = err.error?.message || 'Already applied to these shifts.';
         }
         this.notifications.show(msg, 'error');
         this.applyingOfferId = null;

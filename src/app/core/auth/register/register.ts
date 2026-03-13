@@ -223,13 +223,26 @@ export class RegisterComponent {
       .register(payload, typePath)
       .pipe(first())
       .subscribe({
-        next: () => {
-          alert('Registration Successful!');
-          // If registering as PSW (locum), send user to complete profile first
+        next: (res) => {
+          // For PSW users, auto-login after registration and redirect to complete profile
           if (typePath === 'psw') {
+            // Save token and user data locally (auto-login)
+            if (res.token) {
+              localStorage.setItem('token', res.token);
+              if (res.role) {
+                localStorage.setItem('userRole', res.role);
+              }
+              if (res.userId) {
+                localStorage.setItem('userId', res.userId);
+              }
+              // Update the token subject for immediate authentication
+              this.authService.updateToken(res.token);
+            }
+            // Mark that user needs to complete profile before using the app
+            this.authService.setNeedsProfileCompletion();
             this.router.navigate(['/psw/complete-profile']);
           } else {
-            // For Care Home (individual/multiple), go to login
+            alert('Registration Successful! Please login to continue.');
             this.router.navigate(['/login']);
           }
         },

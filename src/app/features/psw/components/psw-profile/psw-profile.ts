@@ -4,8 +4,10 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { PswNav } from "../../../../shared/components/psw-nav/psw-nav";
 import { Footer } from "../../../../shared/components/footer/footer";
+import { ToastComponent } from "../../../../shared/components/toast/toast";
 import { ProfileService } from '../../../../core/services/profile.service';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 interface ProfileInfo {
   name: string;
@@ -24,7 +26,8 @@ interface ProfileInfo {
     FormsModule,
     RouterModule, 
     PswNav, 
-    Footer
+    Footer,
+    ToastComponent
   ],
   templateUrl: './psw-profile.html',
   styleUrls: ['./psw-profile.scss']
@@ -33,6 +36,7 @@ export class PswProfile implements OnInit {
   private profileService = inject(ProfileService);
   private notifications = inject(NotificationService);
   private cdr = inject(ChangeDetectorRef);
+  private authService = inject(AuthService);
 
   profile: ProfileInfo = {
     name: '',
@@ -45,6 +49,8 @@ export class PswProfile implements OnInit {
 
   isLoading = true;
   isSaving = false;
+  verificationStatus: string | null = null;
+  isProfileComplete = false;
 
   editModel = {
     firstName: '',
@@ -79,6 +85,18 @@ export class PswProfile implements OnInit {
           joinDate: '',
           profileImage: null
         };
+        
+        // Set verification status from API response or local storage
+        this.verificationStatus = p.verificationStatus ?? this.authService.getVerificationStatus();
+        
+        // Use verification status to determine if profile is complete
+        this.isProfileComplete = ['approved', 'pending'].includes(this.verificationStatus || '');
+        
+        // Sync verification status to auth service
+        if (this.verificationStatus && ['approved', 'pending', 'rejected'].includes(this.verificationStatus)) {
+          this.authService.setVerificationStatus(this.verificationStatus as 'approved' | 'pending' | 'rejected');
+        }
+        
         this.editModel = {
           firstName: p.firstName ?? '',
           lastName: p.lastName ?? '',
@@ -140,5 +158,19 @@ export class PswProfile implements OnInit {
 
   getInitials(name: string): string {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  }
+
+  getVerificationLabel(): string {
+    if (this.verificationStatus === 'approved') return 'Verified PSW';
+    if (this.verificationStatus === 'pending') return 'Pending Verification';
+    if (this.verificationStatus === 'rejected') return 'Verification Rejected';
+    return 'Not Verified';
+  }
+
+  getVerificationClass(): string {
+    if (this.verificationStatus === 'approved') return 'verified';
+    if (this.verificationStatus === 'pending') return 'pending';
+    if (this.verificationStatus === 'rejected') return 'rejected';
+    return 'not-verified';
   }
 }

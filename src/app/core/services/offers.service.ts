@@ -146,20 +146,16 @@ export class OffersService {
   applyToOffer(payload: ApplyToOfferDto): Observable<any> {
     // Prevent PSW users who haven't completed their profile from applying
     const role = this.authService.getUserRole();
-    const pswComplete = isPlatformBrowser(this.platformId) ? localStorage.getItem('pswProfileComplete') : null;
     const verificationStatus = this.authService.getVerificationStatus();
     const isPsw = role?.toLowerCase() === 'psw' || role?.toLowerCase() === 'caregiver';
     
-    if (isPsw && (!pswComplete || pswComplete !== '1')) {
-      // return an observable error so callers can show a message
+    if (isPsw && verificationStatus !== 'approved') {
+      let msg = 'Complete your PSW profile before applying or assisting.';
+      if (verificationStatus === 'pending') {
+        msg = 'Your verification is still pending. You cannot apply for offers until approved.';
+      }
       return new Observable(sub => {
-        sub.error({ message: 'Complete your PSW profile before applying or assisting.' });
-      });
-    }
-    
-    if (isPsw && verificationStatus === 'pending') {
-      return new Observable(sub => {
-        sub.error({ message: 'Your verification is still pending. You cannot apply for offers until approved.' });
+        sub.error({ message: msg });
       });
     }
 

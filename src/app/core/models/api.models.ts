@@ -101,6 +101,20 @@ export interface ProfileDto extends UpdateProfileDto {
   role?: string | null;
   profileImage?: string | null;
   verificationStatus?: 'pending' | 'approved' | 'rejected' | null;
+  isProfileCompleted?: boolean | null;
+  isVerified?: boolean | null;
+  workStatus?: boolean | null;
+  proofIdentityType?: string | null;
+  dateOfBirth?: string | null;
+  gender?: string | null;
+  profilePhoto?: { id: string; fileName: string; url: string } | null;
+  proofIdentityFile?: { id: string; fileName: string; url: string } | null;
+  cvFile?: { id: string; fileName: string; url: string } | null;
+  pswCertificateFile?: { id: string; fileName: string; url: string } | null;
+  immunizationRecordFile?: { id: string; fileName: string; url: string } | null;
+  criminalRecordFile?: { id: string; fileName: string; url: string } | null;
+  firstAidOrCPRFile?: { id: string; fileName: string; url: string } | null;
+  insuranceFile?: { id: string; fileName: string; url: string } | null;
 }
 
 

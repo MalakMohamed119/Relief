@@ -1,4 +1,5 @@
-import { Component, AfterViewInit, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, ChangeDetectorRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
@@ -65,7 +66,7 @@ interface Testimonial {
   templateUrl: './care-home-home.html',
   styleUrls: ['./care-home-home.scss'],
 })
-export class CareHomeHome implements AfterViewInit {
+export class CareHomeHome implements OnInit, AfterViewInit {
   @ViewChild('mapContainer') mapContainer!: ElementRef<HTMLDivElement>;
   requestForm: FormGroup;
   isSubmitting = false;
@@ -94,14 +95,13 @@ export class CareHomeHome implements AfterViewInit {
     }, { validators: addressOrLocationValidator() });
   }
 
-  ngAfterViewInit(): void {
-    this.initMap();
-    this.route.fragment.subscribe((f) => {
+  ngOnInit(): void {
+    this.route.fragment.pipe(takeUntilDestroyed()).subscribe((f) => {
       if (f === 'request-form') {
         setTimeout(() => this.scrollToRequestForm(), 100);
       }
     });
-    this.route.queryParamMap.subscribe((params) => {
+    this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe((params) => {
       const offerId = params.get('offerId');
       if (offerId) {
         this.loadOfferForEdit(offerId);
@@ -109,6 +109,12 @@ export class CareHomeHome implements AfterViewInit {
         this.editingOfferId = null;
       }
     });
+  }
+
+  ngAfterViewInit(): void {
+    setTimeout(() => {
+      this.initMap();
+    }, 0);
   }
 
   scrollToRequestForm(): void {
@@ -125,7 +131,7 @@ export class CareHomeHome implements AfterViewInit {
     }).addTo(this.map);
     this.map.on('click', (e: L.LeafletMouseEvent) => this.onMapClick(e.latlng));
     this.mapReady = true;
-    this.cdr.markForCheck();
+    // cdr.markForCheck(); - Angular handles automatically after setTimeout
   }
 
   private onMapClick(latlng: L.LatLng): void {

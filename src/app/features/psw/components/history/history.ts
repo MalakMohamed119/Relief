@@ -3,6 +3,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { PswNav } from "../../../../shared/components/psw-nav/psw-nav";
 import { Footer } from "../../../../shared/components/footer/footer";
+import { ToastComponent } from "../../../../shared/components/toast/toast";
 import { PswApplicationsService } from '../../../../core/services/psw-applications.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { CancelApplicationDto } from '../../../../core/models/api.models';
@@ -45,7 +46,7 @@ class PswApplicationPresenter {
 @Component({
   selector: 'app-history',
   standalone: true,
-  imports: [CommonModule, RouterModule, PswNav, Footer, DatePipe],
+  imports: [CommonModule, RouterModule, PswNav, Footer, ToastComponent, DatePipe],
   templateUrl: './history.html',
   styleUrl: './history.scss',
 })

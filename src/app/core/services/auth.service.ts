@@ -52,6 +52,10 @@ export class AuthService {
     return this.tokenSubject.value;
   }
 
+  updateToken(token: string): void {
+    this.tokenSubject.next(token);
+  }
+
   logout(): void {
     // Call backend logout endpoint (fire-and-forget)
     this.http.post<void>(`${this.apiUrl}/api/auth/logout`, {}).subscribe({
@@ -63,6 +67,10 @@ export class AuthService {
       localStorage.removeItem('token');
       localStorage.removeItem('userRole');
       localStorage.removeItem('userId');
+      // Clear PSW profile-related data
+      localStorage.removeItem('pswProfileComplete');
+      localStorage.removeItem('pswNeedsProfileCompletion');
+      localStorage.removeItem('pswVerificationStatus');
       this.tokenSubject.next(null);
     }
   }
@@ -74,6 +82,24 @@ export class AuthService {
   setProfileComplete(): void {
     if (isPlatformBrowser(this.platformId)) {
       localStorage.setItem('pswProfileComplete', '1');
+    }
+  }
+
+  setNeedsProfileCompletion(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem('pswNeedsProfileCompletion', '1');
+    }
+  }
+
+  getNeedsProfileCompletion(): boolean {
+    return isPlatformBrowser(this.platformId) 
+      ? localStorage.getItem('pswNeedsProfileCompletion') === '1'
+      : false;
+  }
+
+  clearNeedsProfileCompletion(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.removeItem('pswNeedsProfileCompletion');
     }
   }
 

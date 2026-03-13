@@ -60,11 +60,13 @@
       </div>
 
       <div class="card-footer">
-        <button type="button" class="btn btn-approve" (click)="approve(app)">
-          ✓ Approve
+        <button type="button" class="btn btn-approve" (click)="approve(app)" [disabled]="isProcessing(app)">
+          <span *ngIf="isProcessing(app); else approveText" class="spinner">⏳ Processing...</span>
+          <ng-template #approveText>✓ Approve</ng-template>
         </button>
-        <button type="button" class="btn btn-reject" (click)="openReject(app)">
-          ✕ Reject
+        <button type="button" class="btn btn-reject" (click)="openReject(app)" [disabled]="rejectingId || approvingId">
+          <span *ngIf="rejectingId || approvingId; else rejectText" class="spinner">⏳ Processing...</span>
+          <ng-template #rejectText>✕ Reject</ng-template>
         </button>
       </div>
     </div>
@@ -86,8 +88,9 @@
         <button type="button" class="btn btn-cancel" (click)="cancelReject()">
           Cancel
         </button>
-        <button type="button" class="btn btn-reject" (click)="submitReject()">
-          Confirm Reject
+        <button type="button" class="btn btn-reject" (click)="submitReject()" [disabled]="rejectingId === selectedRequestId">
+          <span *ngIf="rejectingId === selectedRequestId; else rejectConfirmText" class="spinner">⏳ Rejecting...</span>
+          <ng-template #rejectConfirmText>Confirm Reject</ng-template>
         </button>
       </div>
     </div>

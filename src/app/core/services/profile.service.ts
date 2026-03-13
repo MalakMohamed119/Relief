@@ -26,11 +26,21 @@ export class ProfileService {
   getMyProfile(): Observable<ProfileDto> {
     return this.http.get<ProfileDto>(`${this.apiUrl}/api/profile`).pipe(
       tap((profile) => {
-        // Set verification status for PSW users
-        if (profile?.verificationStatus) {
-          this.authService.setVerificationStatus(profile.verificationStatus);
+        console.log('Profile fetched:', profile);
+        // Derive verification status from backend fields (isProfileCompleted, isVerified) - safe cast since dynamic fields
+        const completed = (profile as any)?.isProfileCompleted ?? false;
+        const verified = (profile as any)?.isVerified ?? false;
+        let status: 'pending' | 'approved' | null = null;
+        if (completed && verified) {
+          status = 'approved';
+        } else if (completed) {
+          status = 'pending';
+        }
+        if (status) {
+          this.authService.setVerificationStatus(status);
         }
       })
+
     );
   }
 

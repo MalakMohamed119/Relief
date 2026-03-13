@@ -1,4 +1,5 @@
 <app-psw-nav></app-psw-nav>
+<app-toast></app-toast>
 
 <div class="profile-page">
   <!-- Header Banner -->
@@ -12,7 +13,13 @@
     <div class="header-pattern"></div>
   </div>
 
-  <div class="profile-container">
+<div class="profile-container">
+    @if (isLoading) {
+      <div class="loading-container">
+        <div class="spinner"></div>
+        <p>Loading profile...</p>
+      </div>
+    } @else {
     <!-- Main Profile Card -->
     <div class="profile-main-card">
       <!-- Profile Header Section -->
@@ -35,10 +42,56 @@
         <div class="profile-header-info">
           <div class="name-row">
             <h2 class="profile-name">{{ profile.name || 'Your Name' }}</h2>
-            <span class="status-badge verified">
-              <i class="fas fa-check-circle"></i> Verified PSW
+            <span class="status-badge" [ngClass]="getVerificationClass()">
+              <i class="fas" [ngClass]="{
+                'fa-check-circle': verificationStatus === 'approved',
+                'fa-clock': verificationStatus === 'pending',
+                'fa-exclamation-circle': verificationStatus === 'rejected' || !verificationStatus
+              }"></i> {{ getVerificationLabel() }}
             </span>
           </div>
+
+          <!-- Profile Completion Alert - Incomplete Profile -->
+          @if (!isProfileComplete) {
+            <div class="profile-alert alert-warning">
+              <div class="alert-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+              </div>
+              <div class="alert-content">
+                <p><strong>Profile Incomplete</strong></p>
+                <p>Complete your PSW profile and upload required documents to apply for offers.</p>
+                <a routerLink="/psw/complete-profile" class="btn btn-primary btn-sm">
+                  <i class="fas fa-user-plus"></i> Complete Profile
+                </a>
+              </div>
+            </div>
+          }
+
+          <!-- Verification Status Alert - Complete but not verified -->
+          @if (isProfileComplete && (verificationStatus === 'pending' || verificationStatus === 'rejected')) {
+            <div class="profile-alert" [ngClass]="{
+              'alert-pending': verificationStatus === 'pending',
+              'alert-danger': verificationStatus === 'rejected'
+            }">
+              <div class="alert-icon">
+                <i class="fas" [ngClass]="{
+                  'fa-clock': verificationStatus === 'pending',
+                  'fa-exclamation-triangle': verificationStatus === 'rejected'
+                }"></i>
+              </div>
+              <div class="alert-content">
+                @if (verificationStatus === 'pending') {
+                  <p><strong>Verification Pending</strong></p>
+                  <p>Your verification is still pending. You cannot apply for offers until approved.</p>
+                }
+                @if (verificationStatus === 'rejected') {
+                  <p><strong>Verification Rejected</strong></p>
+                  <p>Your verification was rejected. Please contact support or re-submit your documents.</p>
+                }
+              </div>
+            </div>
+          }
+          
           <p class="profile-email">
             <i class="fas fa-envelope"></i> {{ profile.email }}
           </p>
@@ -311,6 +364,7 @@
         </div>
       </form>
     </div>
+    }
   </div>
 </div>
 

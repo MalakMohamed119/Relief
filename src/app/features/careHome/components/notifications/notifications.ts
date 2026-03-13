@@ -10,6 +10,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
 interface Application {
   id: string;
   jobRequestItemId: string;
+  pswUserId?: string | null;
   offerId: string;
   shiftId?: string | null;
   offerTitle: string;
@@ -100,24 +101,30 @@ export class Notifications implements OnInit {
   }
 
   acceptRequest(app: Application): void {
-    if (!app.jobRequestItemId) {
-      this.notificationService.show('Missing application details', 'error');
-      return;
-    }
-    const shiftId = app.shiftId ?? app.offerId;
-    if (!shiftId) {
-      this.notificationService.show('Missing shift ID for accept', 'error');
+    console.log('Accept request app data:', app); // Debug log
+
+    // Fallback for jobRequestItemId
+    const jobRequestItemId = app.jobRequestItemId || app.id;
+    if (!jobRequestItemId) {
+      this.notificationService.show(`Cannot accept: missing jobRequestItemId (app.id: ${app.id || 'none'})`, 'error');
       return;
     }
 
-    this.acceptingId = app.jobRequestItemId;
-    this.applicationsService.acceptShift({
+    // Improved shiftId fallback
+    const shiftId = app.shiftId ?? app.id ?? app.offerId ?? null;
+    if (!shiftId) {
+      this.notificationService.show('Cannot accept: missing shift details', 'error');
+      return;
+    }
+
+    this.acceptingId = jobRequestItemId;
+        this.applicationsService.acceptShift({
       shiftId,
-      jobRequestItemId: app.jobRequestItemId
+      jobRequestItemId: jobRequestItemId
     }).subscribe({
       next: () => {
         this.notificationService.show('Application accepted successfully!', 'success');
-        const idx = this.applications.findIndex(a => a.jobRequestItemId === app.jobRequestItemId);
+        const idx = this.applications.findIndex(a => a.jobRequestItemId === jobRequestItemId || a.id === jobRequestItemId);
         if (idx !== -1) {
           this.applications[idx].statusCode = 2;
           this.applications[idx].status = 'Accepted';

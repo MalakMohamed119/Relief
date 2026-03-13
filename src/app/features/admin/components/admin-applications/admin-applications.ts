@@ -12,16 +12,16 @@ interface ApplicationResponse {
 }
 
 interface ApplicationItem {
-  applicationId: string;
-  pswUserId: string;
+  jobRequestId: string;
+  pswUserId?: string;
   offerId: string;
   pswName: string;
-  pswEmail: string;
+  pswEmail?: string;
   offerTitle: string;
   careHomeName: string;
-  shiftDate: string;
-  startTime: string;
-  endTime: string;
+  shiftDate?: string;
+  startTime?: string;
+  endTime?: string;
   status: string;
   appliedAt: string;
 }
@@ -43,6 +43,8 @@ export class AdminApplications implements OnInit {
   error: string | null = null;
   rejectReason = '';
   selectedRequestId: string | null = null;
+  approvingId: string | null = null;
+  rejectingId: string | null = null;
 
   ngOnInit(): void {
     this.load();
@@ -56,6 +58,7 @@ export class AdminApplications implements OnInit {
       next: (response: ApplicationResponse) => {
         console.log('Pending applications response:', response);
         this.applications = response?.data ?? [];
+        console.log('Loaded pending applications:', this.applications);
         this.isLoading = false;
         this.cdr.detectChanges();
       },
@@ -69,45 +72,73 @@ export class AdminApplications implements OnInit {
   }
 
   approve(app: ApplicationItem): void {
-    if (!app.applicationId) {
-      this.notifications.show('Missing application ID.', 'error');
+    console.log('Approve clicked for app:', app.jobRequestId, app);
+    if (!app.jobRequestId) {
+      this.notifications.show('Missing jobRequestId.', 'error');
+      return;
+    }
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(app.jobRequestId)) {
+      console.error('Invalid UUID:', app.jobRequestId);
+      this.notifications.show('Invalid jobRequestId format.', 'error');
       return;
     }
 
-    this.admin.approveApplication(app.applicationId).subscribe({
+    this.approvingId = app.jobRequestId;
+
+    this.admin.approveApplication(app.jobRequestId).subscribe({
       next: () => {
-        this.notifications.show('Application approved successfully.', 'success');
-        this.applications = this.applications.filter(a => a.applicationId !== app.applicationId);
+        this.notifications.show('Application approved & forwarded to CareHome for final review.', 'success');
+        this.applications = this.applications.filter(a => a.jobRequestId !== app.jobRequestId);
         this.cdr.detectChanges();
       },
       error: (err) => {
-        this.notifications.show(err?.error?.message || 'Failed to approve application.', 'error');
+        console.error('Approve error - Status:', err.status, 'Response:', err.error);
+        this.notifications.show(err?.error?.message || `Approve failed (Status: ${err.status || 'unknown'})`, 'error');
       },
+      complete: () => {
+        this.approvingId = null;
+        this.cdr.detectChanges();
+      }
     });
   }
 
   openReject(app: ApplicationItem): void {
-    this.selectedRequestId = app.applicationId;
+    this.selectedRequestId = app.jobRequestId;
     this.rejectReason = '';
   }
 
   submitReject(): void {
+    console.log('Reject submitted for ID:', this.selectedRequestId, 'Reason:', this.rejectReason);
     if (!this.selectedRequestId || !this.rejectReason.trim()) {
       this.notifications.show('Please enter a rejection reason.', 'error');
       return;
     }
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(this.selectedRequestId!)) {
+      console.error('Invalid UUID for reject:', this.selectedRequestId);
+      this.notifications.show('Invalid jobRequestId format.', 'error');
+      return;
+    }
+
+    this.rejectingId = this.selectedRequestId;
 
     this.admin.rejectApplication(this.selectedRequestId, { reason: this.rejectReason.trim() }).subscribe({
       next: () => {
-        this.notifications.show('Application rejected.', 'success');
-        this.applications = this.applications.filter(a => a.applicationId !== this.selectedRequestId);
+        this.notifications.show('Application rejected successfully.', 'success');
+        this.applications = this.applications.filter(a => a.jobRequestId !== this.selectedRequestId);
         this.selectedRequestId = null;
         this.rejectReason = '';
         this.cdr.detectChanges();
       },
       error: (err) => {
-        this.notifications.show(err?.error?.message || 'Failed to reject application.', 'error');
+        console.error('Reject error - Status:', err.status, 'Response:', err.error);
+        this.notifications.show(err?.error?.message || `Reject failed (Status: ${err.status || 'unknown'})`, 'error');
       },
+      complete: () => {
+        this.rejectingId = null;
+        this.cdr.detectChanges();
+      }
     });
   }
 
@@ -154,6 +185,10 @@ export class AdminApplications implements OnInit {
       });
     }
     return 'N/A';
+  }
+
+  isProcessing(app: ApplicationItem): boolean {
+    return this.approvingId === app.jobRequestId || this.rejectingId === app.jobRequestId;
   }
 }
 

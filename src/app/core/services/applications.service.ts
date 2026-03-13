@@ -89,18 +89,20 @@ export class ApplicationsService {
   /** Normalize each application item – supports multiple API shapes */
   private normalizeApplicationItems(list: any[]): any[] {
     return list.map((item) => {
+      console.log('Raw application item:', item); // Debug raw API data
       const shifts = item.shifts ?? item.Shifts ?? item.shift ?? [];
       const firstShift = Array.isArray(shifts) && shifts[0] ? shifts[0] : (typeof item.shift === 'object' && item.shift != null ? item.shift : null);
       const offer = item.offer ?? item.Offer ?? item.jobRequest ?? {};
       const statusCode = item.statusCode ?? item.StatusCode ?? item.status ?? item.Status ?? 1;
       const shiftId = item.shiftId ?? item.ShiftId ?? firstShift?.id ?? firstShift?.shiftId ?? firstShift?.Id ?? null;
       return {
-        id: item.id ?? item.Id ?? item.applicationId ?? item.ApplicationId,
-        jobRequestItemId: item.jobRequestItemId ?? item.JobRequestItemId ?? item.id ?? item.Id,
-        offerId: item.offerId ?? item.OfferId ?? item.offerID ?? offer?.id ?? offer?.Id,
+        id: item.id ?? item.Id ?? item.applicationId ?? item.ApplicationId ?? item.jobRequestItemId ?? item.applicationItemId ?? 'unknown-' + Math.random().toString(36).substr(2, 9),
+        jobRequestItemId: item.jobRequestId ?? item.jobRequestId ?? item.jobRequestItemId ?? item.JobRequestItemId ?? item.id ?? item.Id ?? item.applicationId ?? item.ApplicationId ?? shiftId ?? 'unknown-' + Math.random().toString(36).substr(2, 9),
+        offerId: item.offerId ?? item.OfferId ?? item.offerID ?? offer?.id ?? offer?.Id ?? shiftId ?? null,
         shiftId,
         offerTitle: this.pick(item, 'offerTitle', 'OfferTitle', 'title', 'Title', 'offer.title') ?? '',
-        pswName: this.pick(item, 'pswName', 'PswName', 'applicantName', 'Name', 'caregiverName', 'psw.name', 'applicant.name', 'user.name') ?? 'Applicant',
+        pswUserId: this.pick(item, 'psw.userId', 'psw.id', 'pswUserId', 'pswId', 'applicantId', 'userId', 'pswUser.id') ?? null,
+        pswName: this.pick(item, 'pswName', 'PswName', 'applicantName', 'Name', 'caregiverName', 'psw.name', 'psw.fullName', 'psw.firstName', 'applicant.name', 'user.name') ?? 'Applicant',
         pswPhone: this.pick(item, 'pswPhone', 'PswPhone', 'phone', 'Phone', 'phoneNumber', 'PhoneNumber', 'applicantPhone', 'psw.phone', 'applicant.phone', 'user.phone') ?? '',
         serviceType: this.pick(item, 'serviceType', 'ServiceType', 'type', 'Type') ?? 'Care Service',
         address: this.pick(item, 'address', 'Address', 'location', 'Location', 'offer.address', 'offer.Address') ?? '',
@@ -134,6 +136,7 @@ export class ApplicationsService {
   }
 
   acceptShift(payload: AcceptShiftDto): Observable<any> {
+    console.log('Accept payload:', payload);
     return this.http.post<any>(`${this.apiUrl}/api/applications/accept`, payload);
   }
 

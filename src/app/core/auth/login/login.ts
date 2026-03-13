@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject, PLATFORM_ID } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { ProfileService } from '../../services/profile.service';
 
@@ -18,6 +18,7 @@ export class LoginComponent implements OnInit {
   showPassword = false;
   sessionExpired = false;
   loginError = '';
+  private platformId = inject(PLATFORM_ID);
 
   constructor(
     private fb: FormBuilder,
@@ -98,6 +99,8 @@ export class LoginComponent implements OnInit {
     } else if (role === 'carehome' || role === 'individual') {
       this.router.navigate(['/care-home']);
     } else {
+      // PSW users always go to PSW dashboard after login
+      // Never redirect to complete profile after login
       this.router.navigate(['/psw']);
     }
   }

@@ -1,4 +1,5 @@
 <app-psw-nav></app-psw-nav>
+<app-toast></app-toast>
 
 <div class="psw-offers-page">
   <!-- Header Banner -->
@@ -99,10 +100,11 @@
           <button
             class="btn btn-primary"
             type="button"
-            [disabled]="applyingOfferId === offer.id"
-            (click)="openDetails(offer)">
+            [disabled]="applyingOfferId === offer.id || !offer.shifts?.length"
+            (click)="apply(offer)"
+            [title]="!offer.shifts?.length ? 'No shifts available' : ''">
             <i class="fas" [ngClass]="applyingOfferId === offer.id ? 'fa-spinner fa-spin' : 'fa-paper-plane'"></i>
-            {{ applyingOfferId === offer.id ? 'Applying...' : 'Apply Now' }}
+            {{ applyingOfferId === offer.id ? 'Applying...' : (!offer.shifts?.length ? 'No Shifts' : 'Apply Now') }}
           </button>
         </div>
       </article>

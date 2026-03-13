@@ -27,9 +27,11 @@ export class AdminService {
     return this.http.post<any>(`${this.apiUrl}/api/admin/verifications/${pswId}/reject`, payload);
   }
 
-  /** GET /api/admin/applications/pending */
+  /** GET /api/admin/applications?status=Pending */
   getPendingApplications(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/api/admin/applications/pending`);
+    return this.http.get<any>(`${this.apiUrl}/api/admin/applications`, {
+      params: { status: 'Pending' }
+    });
   }
 
   /** POST /api/admin/applications/{requestId}/approve */
