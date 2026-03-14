@@ -1,0 +1,68 @@
+<div class="admin-page">
+  <div class="admin-header">
+    <div class="header-left">
+      <a routerLink="/admin/dashboard" class="back-btn" title="Back to Dashboard">
+        <i class="fa-solid fa-arrow-left"></i>
+      </a>
+      <h1>All Job Offers</h1>
+    </div>
+    <button type="button" class="refresh-btn" (click)="load()" [disabled]="isLoading">
+      <span>🔄</span>
+      {{ isLoading ? 'Loading...' : 'Refresh' }}
+    </button>
+  </div>
+
+  <div *ngIf="isLoading" class="loading">
+    <div class="loading-spinner"></div>
+    <div>Loading offers...</div>
+  </div>
+
+  <div *ngIf="!isLoading && error" class="error">
+    <strong>Error:</strong> {{ error }}
+  </div>
+
+  <div *ngIf="!isLoading && !error && offers.length === 0" class="empty">
+    <div class="empty-icon">📭</div>
+    <div>No job offers found</div>
+    <div class="empty-subtitle">Care homes haven't posted any offers yet</div>
+  </div>
+
+  <!-- Cards Grid -->
+  <div *ngIf="!isLoading && !error && offers.length > 0" class="cards-grid">
+    <div *ngFor="let offer of offers" class="offer-card">
+      <div class="card-header">
+        <div class="offer-icon">💼</div>
+        <div class="offer-info">
+          <h3>{{ getTitle(offer) }}</h3>
+          <span class="status-badge" [class.active]="offer.isActive" [class.inactive]="!offer.isActive">
+            {{ getStatus(offer) }}
+          </span>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="info-row">
+          <span class="info-label">🏠 Care Home</span>
+          <span class="info-value">{{ getCareHomeName(offer) }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">📍 Address</span>
+          <span class="info-value">{{ getAddress(offer) }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">💰 Rate</span>
+          <span class="info-value rate-value">{{ getHourlyRate(offer) }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">📅 Shifts</span>
+          <span class="info-value">{{ getShiftDates(offer) }}</span>
+        </div>
+        <div class="shift-count-badge">
+          <span class="shift-icon">📆</span>
+          <span>{{ getShiftCount(offer) }} shift(s) total</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

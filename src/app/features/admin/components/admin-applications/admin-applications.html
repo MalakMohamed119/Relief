@@ -1,0 +1,99 @@
+<div class="admin-page">
+  <div class="admin-header">
+    <div class="header-left">
+      <a routerLink="/admin/dashboard" class="back-btn" title="Back to Dashboard">
+        <i class="fa-solid fa-arrow-left"></i>
+      </a>
+      <h1>Pending Applications</h1>
+    </div>
+    <button type="button" class="refresh-btn" (click)="load()" [disabled]="isLoading">
+      <span>🔄</span>
+      {{ isLoading ? 'Loading...' : 'Refresh' }}
+    </button>
+  </div>
+
+  <div *ngIf="isLoading" class="loading">
+    <div class="loading-spinner"></div>
+    <div>Loading applications...</div>
+  </div>
+
+  <div *ngIf="!isLoading && error" class="error">
+    <strong>Error:</strong> {{ error }}
+  </div>
+
+  <div *ngIf="!isLoading && !error && applications.length === 0" class="empty">
+    <div class="empty-icon">📋</div>
+    <div>No pending applications</div>
+    <div class="empty-subtitle">All applications have been processed</div>
+  </div>
+
+  <!-- Cards Grid -->
+  <div *ngIf="!isLoading && !error && applications.length > 0" class="cards-grid">
+    <div *ngFor="let app of applications" class="application-card">
+      <div class="card-header">
+        <div class="psw-avatar">
+          {{ getPswName(app).charAt(0).toUpperCase() }}
+        </div>
+        <div class="psw-info">
+          <h3>{{ getPswName(app) }}</h3>
+          <span class="status-badge pending">Pending</span>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="info-row">
+          <span class="info-label">💼 Offer</span>
+          <span class="info-value">{{ getOfferTitle(app) }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">🏠 Care Home</span>
+          <span class="info-value">{{ getCareHomeName(app) }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">🕐 Shift</span>
+          <span class="info-value">{{ getShiftInfo(app) }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">📅 Applied</span>
+          <span class="info-value">{{ getSubmittedDate(app) }}</span>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <button type="button" class="btn btn-approve" (click)="approve(app)" [disabled]="isProcessing(app)">
+          <span *ngIf="isProcessing(app); else approveText" class="spinner">⏳ Processing...</span>
+          <ng-template #approveText>✓ Approve</ng-template>
+        </button>
+        <button type="button" class="btn btn-reject" (click)="openReject(app)" [disabled]="rejectingId || approvingId">
+          <span *ngIf="rejectingId || approvingId; else rejectText" class="spinner">⏳ Processing...</span>
+          <ng-template #rejectText>✕ Reject</ng-template>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reject Modal -->
+  <div *ngIf="selectedRequestId" class="modal" (click)="cancelReject()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h2>Reject Application</h2>
+      <p class="modal-description">
+        Please provide a reason for rejecting this application.
+      </p>
+      <textarea 
+        [(ngModel)]="rejectReason" 
+        placeholder="Enter rejection reason..."
+        maxlength="500"
+      ></textarea>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-cancel" (click)="cancelReject()">
+          Cancel
+        </button>
+        <button type="button" class="btn btn-reject" (click)="submitReject()" [disabled]="rejectingId === selectedRequestId">
+          <span *ngIf="rejectingId === selectedRequestId; else rejectConfirmText" class="spinner">⏳ Rejecting...</span>
+          <ng-template #rejectConfirmText>Confirm Reject</ng-template>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
